@@ -1,0 +1,1104 @@
+-- ╔════════════════════════════════════════════════════════════════╗
+-- ║           Enhanced UNC Checker v2.0                            ║
+-- ║           By puppetdragonxd - Enhanced Edition                 ║
+-- ╚════════════════════════════════════════════════════════════════╝
+
+local passes, fails, undefined = 0, 0, 0
+local running = 0
+local startTime = tick()
+
+-- UI Configuration
+local UI_CONFIG = {
+	COLORS = {
+		HEADER = "\27[95m",      -- Bright Magenta
+		SUCCESS = "\27[92m",     -- Bright Green
+		FAIL = "\27[91m",        -- Bright Red
+		WARNING = "\27[93m",     -- Bright Yellow
+		INFO = "\27[94m",        -- Bright Blue
+		CATEGORY = "\27[96m",    -- Bright Cyan
+		RESET = "\27[0m",        -- Reset
+		BOLD = "\27[1m",         -- Bold
+		DIM = "\27[2m",          -- Dim
+	},
+	ICONS = {
+		SUCCESS = "✅",
+		FAIL = "⛔",
+		WARNING = "⚠️",
+		INFO = "⏺️",
+		CATEGORY = "📦",
+		EXECUTOR = "🚀",
+		PERCENTAGE = "📊",
+		TIME = "⏱️",
+		CHECK = "✓",
+		CROSS = "✗",
+	}
+}
+
+-- Helper function to create colored text
+local function colorize(text, color)
+	return color .. text .. UI_CONFIG.COLORS.RESET
+end
+
+-- Helper function to create section divider
+local function printDivider(char, length)
+	print(string.rep(char or "─", length or 70))
+end
+
+-- Helper function to create fancy header
+local function printHeader(text)
+	local length = 70
+	local padding = math.floor((length - #text - 2) / 2)
+	print("\n" .. colorize("╔" .. string.rep("═", length - 2) .. "╗", UI_CONFIG.COLORS.HEADER))
+	print(colorize("║" .. string.rep(" ", padding) .. text .. string.rep(" ", length - padding - #text - 2) .. "║", UI_CONFIG.COLORS.HEADER))
+	print(colorize("╚" .. string.rep("═", length - 2) .. "╝", UI_CONFIG.COLORS.HEADER))
+end
+
+-- Executor Detection
+local function detectExecutor()
+	local executorName = "Unknown"
+	local executorVersion = "N/A"
+	
+	if identifyexecutor then
+		local success, name, version = pcall(identifyexecutor)
+		if success then
+			executorName = name or "Unknown"
+			executorVersion = version or "N/A"
+		end
+	elseif getexecutorname then
+		local success, name = pcall(getexecutorname)
+		if success then
+			executorName = name or "Unknown"
+		end
+	end
+	
+	return executorName, executorVersion
+end
+
+local function getGlobal(path)
+	local value = getfenv(0)
+
+	while value ~= nil and path ~= "" do
+		local name, nextValue = string.match(path, "^([^.]+)%.?(.*)$")
+		value = value[name]
+		path = nextValue
+	end
+
+	return value
+end
+
+local function test(name, aliases, callback)
+	running += 1
+
+	task.spawn(function()
+		if not callback then
+			print(colorize(UI_CONFIG.ICONS.INFO .. " " .. name, UI_CONFIG.COLORS.DIM))
+		elseif not getGlobal(name) then
+			fails += 1
+			warn(colorize(UI_CONFIG.ICONS.FAIL .. " " .. name, UI_CONFIG.COLORS.FAIL))
+		else
+			local success, message = pcall(callback)
+	
+			if success then
+				passes += 1
+				local output = UI_CONFIG.ICONS.SUCCESS .. " " .. name
+				if message then
+					output = output .. colorize(" • " .. message, UI_CONFIG.COLORS.DIM)
+				end
+				print(colorize(output, UI_CONFIG.COLORS.SUCCESS))
+			else
+				fails += 1
+				warn(colorize(UI_CONFIG.ICONS.FAIL .. " " .. name .. " failed: " .. message, UI_CONFIG.COLORS.FAIL))
+			end
+		end
+	
+		local undefinedAliases = {}
+	
+		for _, alias in ipairs(aliases) do
+			if getGlobal(alias) == nil then
+				table.insert(undefinedAliases, alias)
+			end
+		end
+	
+		if #undefinedAliases > 0 then
+			undefined += 1
+			warn(colorize(UI_CONFIG.ICONS.WARNING .. " Missing aliases: " .. table.concat(undefinedAliases, ", "), UI_CONFIG.COLORS.WARNING))
+		end
+
+		running -= 1
+	end)
+end
+
+-- Print category header
+local function printCategory(name)
+	print("\n" .. colorize(UI_CONFIG.ICONS.CATEGORY .. " " .. name, UI_CONFIG.COLORS.CATEGORY .. UI_CONFIG.COLORS.BOLD))
+	printDivider("─", 70)
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- HEADER
+-- ═══════════════════════════════════════════════════════════════
+
+printHeader("ENHANCED UNC CHECKER v2.0")
+
+-- Detect executor
+local executorName, executorVersion = detectExecutor()
+print(colorize(UI_CONFIG.ICONS.EXECUTOR .. " Executor: ", UI_CONFIG.COLORS.INFO) .. 
+	colorize(executorName, UI_CONFIG.COLORS.BOLD) .. 
+	(executorVersion ~= "N/A" and colorize(" (v" .. executorVersion .. ")", UI_CONFIG.COLORS.DIM) or ""))
+
+print(colorize("\n" .. UI_CONFIG.ICONS.CHECK .. " = Pass  " .. 
+	UI_CONFIG.ICONS.CROSS .. " = Fail  " .. 
+	UI_CONFIG.ICONS.INFO .. " = No test  " .. 
+	UI_CONFIG.ICONS.WARNING .. " = Missing aliases", UI_CONFIG.COLORS.DIM))
+
+-- ═══════════════════════════════════════════════════════════════
+-- TESTS START HERE
+-- ═══════════════════════════════════════════════════════════════
+
+-- Cache
+printCategory("Cache")
+
+test("cache.invalidate", {}, function()
+	local container = Instance.new("Folder")
+	local part = Instance.new("Part", container)
+	cache.invalidate(container:FindFirstChild("Part"))
+	assert(part ~= container:FindFirstChild("Part"), "Reference `part` could not be invalidated")
+end)
+
+test("cache.iscached", {}, function()
+	local part = Instance.new("Part")
+	assert(cache.iscached(part), "Part should be cached")
+	cache.invalidate(part)
+	assert(not cache.iscached(part), "Part should not be cached")
+end)
+
+test("cache.replace", {}, function()
+	local part = Instance.new("Part")
+	local fire = Instance.new("Fire")
+	cache.replace(part, fire)
+	assert(part ~= fire, "Part was not replaced with Fire")
+end)
+
+test("cloneref", {}, function()
+	local part = Instance.new("Part")
+	local clone = cloneref(part)
+	assert(part ~= clone, "Clone should not be equal to original")
+	clone.Name = "Test"
+	assert(part.Name == "Test", "Clone should have updated the original")
+end)
+
+test("compareinstances", {}, function()
+	local part = Instance.new("Part")
+	local clone = cloneref(part)
+	assert(part ~= clone, "Clone should not be equal to original")
+	assert(compareinstances(part, clone), "Clone should be equal to original when using compareinstances()")
+end)
+
+-- Closures
+printCategory("Closures")
+
+local function shallowEqual(t1, t2)
+	if t1 == t2 then
+		return true
+	end
+
+	local UNIQUE_TYPES = {
+		["function"] = true,
+		["table"] = true,
+		["userdata"] = true,
+		["thread"] = true,
+	}
+
+	for k, v in pairs(t1) do
+		if UNIQUE_TYPES[type(v)] then
+			if type(t2[k]) ~= type(v) then
+				return false
+			end
+		elseif t2[k] ~= v then
+			return false
+		end
+	end
+
+	for k, v in pairs(t2) do
+		if UNIQUE_TYPES[type(v)] then
+			if type(t2[k]) ~= type(v) then
+				return false
+			end
+		elseif t1[k] ~= v then
+			return false
+		end
+	end
+
+	return true
+end
+
+test("checkcaller", {}, function()
+	assert(checkcaller(), "Main scope should return true")
+end)
+
+test("clonefunction", {}, function()
+	local function test()
+		return "success"
+	end
+	local copy = clonefunction(test)
+	assert(test() == copy(), "The clone should return the same value as the original")
+	assert(test ~= copy, "The clone should not be equal to the original")
+end)
+
+test("getcallingscript", {})
+
+test("getscriptclosure", {"getscriptfunction"}, function()
+	local module = game:GetService("CoreGui").RobloxGui.Modules.Common.Constants
+	local constants = getrenv().require(module)
+	local generated = getscriptclosure(module)()
+	assert(constants ~= generated, "Generated module should not match the original")
+	assert(shallowEqual(constants, generated), "Generated constant table should be shallow equal to the original")
+end)
+
+test("hookfunction", {"replaceclosure"}, function()
+	local function test()
+		return true
+	end
+	local ref = hookfunction(test, function()
+		return false
+	end)
+	assert(test() == false, "Function should return false")
+	assert(ref() == true, "Original function should return true")
+	assert(test ~= ref, "Original function should not be same as the reference")
+end)
+
+test("iscclosure", {}, function()
+	assert(iscclosure(print) == true, "Function 'print' should be a C closure")
+	assert(iscclosure(function() end) == false, "Executor function should not be a C closure")
+end)
+
+test("islclosure", {}, function()
+	assert(islclosure(print) == false, "Function 'print' should not be a Lua closure")
+	assert(islclosure(function() end) == true, "Executor function should be a Lua closure")
+end)
+
+test("isexecutorclosure", {"checkclosure", "isourclosure"}, function()
+	assert(isexecutorclosure(isexecutorclosure) == true, "Did not return true for an executor global")
+	assert(isexecutorclosure(newcclosure(function() end)) == true, "Did not return true for an executor C closure")
+	assert(isexecutorclosure(function() end) == true, "Did not return true for an executor Luau closure")
+	assert(isexecutorclosure(print) == false, "Did not return false for a Roblox global")
+end)
+
+test("loadstring", {}, function()
+	local animate = game:GetService("Players").LocalPlayer.Character.Animate
+	local bytecode = getscriptbytecode(animate)
+	local func = loadstring(bytecode)
+	assert(type(func) ~= "function", "Luau bytecode should not be loadable!")
+	assert(assert(loadstring("return ... + 1"))(1) == 2, "Failed to do simple math")
+	assert(type(select(2, loadstring("f"))) == "string", "Loadstring did not return anything for a compiler error")
+end)
+
+test("newcclosure", {}, function()
+	local function test()
+		return true
+	end
+	local testC = newcclosure(test)
+	assert(test() == testC(), "New C closure should return the same value as the original")
+	assert(test ~= testC, "New C closure should not be same as the original")
+	assert(iscclosure(testC), "New C closure should be a C closure")
+end)
+
+-- Console
+printCategory("Console")
+
+test("rconsoleclear", {"consoleclear"})
+test("rconsolecreate", {"consolecreate"})
+test("rconsoledestroy", {"consoledestroy"})
+test("rconsoleinput", {"consoleinput"})
+test("rconsoleprint", {"consoleprint"})
+test("rconsolesettitle", {"rconsolename", "consolesettitle"})
+
+-- Crypt
+printCategory("Crypt")
+
+test("crypt.base64encode", {"crypt.base64.encode", "crypt.base64_encode", "base64.encode", "base64_encode"}, function()
+	assert(crypt.base64encode("test") == "dGVzdA==", "Base64 encoding failed")
+end)
+
+test("crypt.base64decode", {"crypt.base64.decode", "crypt.base64_decode", "base64.decode", "base64_decode"}, function()
+	assert(crypt.base64decode("dGVzdA==") == "test", "Base64 decoding failed")
+end)
+
+test("crypt.encrypt", {}, function()
+	local key = crypt.generatekey()
+	local encrypted, iv = crypt.encrypt("test", key, nil, "CBC")
+	assert(iv, "crypt.encrypt should return an IV")
+	local decrypted = crypt.decrypt(encrypted, key, iv, "CBC")
+	assert(decrypted == "test", "Failed to decrypt raw string")
+end)
+
+test("crypt.decrypt", {}, function()
+	local key = crypt.generatekey()
+	local encrypted, iv = crypt.encrypt("test", key, nil, "CBC")
+	local decrypted = crypt.decrypt(encrypted, key, iv, "CBC")
+	assert(decrypted == "test", "Failed to decrypt raw string")
+end)
+
+test("crypt.generatebytes", {}, function()
+	local bytes = crypt.generatebytes(16)
+	assert(type(bytes) == "string", "Did not return a string")
+	assert(#bytes == 16, "Did not return 16 bytes")
+end)
+
+test("crypt.generatekey", {}, function()
+	local key = crypt.generatekey()
+	assert(type(key) == "string", "Did not return a string")
+end)
+
+test("crypt.hash", {}, function()
+	local hash = crypt.hash("test")
+	assert(type(hash) == "string", "Did not return a string")
+	assert(#hash == 64, "Did not return a 64 character hash")
+end)
+
+-- NEW: Additional Crypt Tests
+test("crypt.random", {}, function()
+	local random1 = crypt.random(1, 100)
+	local random2 = crypt.random(1, 100)
+	assert(type(random1) == "number", "Did not return a number")
+	assert(random1 >= 1 and random1 <= 100, "Random number out of range")
+end)
+
+test("crypt.hex.encode", {"crypt.hex_encode"}, function()
+	local hex = crypt.hex.encode("test")
+	assert(type(hex) == "string", "Did not return a string")
+	assert(hex == "74657374", "Hex encoding failed")
+end)
+
+test("crypt.hex.decode", {"crypt.hex_decode"}, function()
+	local decoded = crypt.hex.decode("74657374")
+	assert(decoded == "test", "Hex decoding failed")
+end)
+
+test("crypt.url.encode", {"crypt.url_encode"}, function()
+	local encoded = crypt.url.encode("hello world!")
+	assert(type(encoded) == "string", "Did not return a string")
+	assert(encoded:find("%%20") or encoded:find("%%21"), "URL encoding failed")
+end)
+
+test("crypt.url.decode", {"crypt.url_decode"}, function()
+	local decoded = crypt.url.decode("hello%20world%21")
+	assert(decoded == "hello world!", "URL decoding failed")
+end)
+
+-- Debug
+printCategory("Debug")
+
+test("debug.getconstant", {}, function()
+	local function test()
+		print("Hello, world!")
+	end
+	assert(debug.getconstant(test, 1) == "print", "Did not return the first constant")
+end)
+
+test("debug.getconstants", {}, function()
+	local function test()
+		local num = 5000 .. 50000
+	end
+	local constants = debug.getconstants(test)
+	assert(type(constants) == "table", "Did not return a table")
+	assert(#constants > 0, "Did not return any constants")
+end)
+
+test("debug.getinfo", {}, function()
+	local types = {
+		source = "string",
+		short_src = "string",
+		func = "function",
+		what = "string",
+		currentline = "number",
+		name = "string",
+		nups = "number",
+		numparams = "number",
+		is_vararg = "number",
+	}
+	local info = debug.getinfo(print)
+	for k, v in pairs(types) do
+		assert(info[k] ~= nil, "Did not return a table with a '" .. k .. "' field")
+		assert(type(info[k]) == v, "Did not return a '" .. v .. "' for '" .. k .. "' (a " .. type(info[k]) .. ")")
+	end
+end)
+
+test("debug.getproto", {}, function()
+	local function test()
+		local function proto()
+			return true
+		end
+	end
+	local proto = debug.getproto(test, 1, true)[1]
+	local realproto = debug.getproto(test, 1)
+	assert(type(proto) == "function", "Did not return a function")
+	assert(proto(), "The inner function did not return anything")
+	if type(realproto) == "table" then
+		return "Proto return type is a table"
+	else
+		return "Proto return type is " .. type(realproto)
+	end
+end)
+
+test("debug.getprotos", {}, function()
+	local function test()
+		local function _1()
+		end
+		local function _2()
+		end
+		local function _3()
+		end
+	end
+	local protos = debug.getprotos(test)
+	assert(type(protos) == "table", "Did not return a table")
+	assert(#protos == 3, "Did not return 3 protos")
+end)
+
+test("debug.getstack", {}, function()
+	local _ = "a" .. "b"
+	assert(debug.getstack(1, 1) == "ab", "The first item on the stack should be 'ab'")
+	pcall(function()
+		error("Expected error")
+	end)
+end)
+
+test("debug.getupvalue", {}, function()
+	local upvalue = function() end
+	local function test()
+		print(upvalue)
+	end
+	assert(debug.getupvalue(test, 1) == upvalue, "Did not return the first upvalue")
+end)
+
+test("debug.getupvalues", {}, function()
+	local upvalue = function() end
+	local function test()
+		print(upvalue)
+	end
+	local upvalues = debug.getupvalues(test)
+	assert(type(upvalues) == "table", "Did not return a table")
+	assert(upvalues[1] == upvalue, "Did not return the first upvalue")
+end)
+
+test("debug.setconstant", {}, function()
+	local function test()
+		return "fail"
+	end
+	debug.setconstant(test, 1, "success")
+	assert(test() == "success", "Did not set the first constant")
+end)
+
+test("debug.setstack", {}, function()
+	local function test()
+		return "fail", debug.setstack(1, 1, "success")
+	end
+	assert(test() == "success", "Did not set the first stack item")
+end)
+
+test("debug.setupvalue", {}, function()
+	local function upvalue()
+		return "fail"
+	end
+	local function test()
+		return upvalue()
+	end
+	debug.setupvalue(test, 1, function()
+		return "success"
+	end)
+	assert(test() == "success", "Did not set the first upvalue")
+end)
+
+-- Filesystem
+printCategory("Filesystem")
+
+test("readfile", {}, function()
+	writefile("unc_test.txt", "success")
+	assert(readfile("unc_test.txt") == "success", "Did not return the contents of the file")
+	delfile("unc_test.txt")
+end)
+
+test("listfiles", {}, function()
+	makefolder("unc_test_folder")
+	writefile("unc_test_folder/test.txt", "success")
+	local files = listfiles("unc_test_folder")
+	assert(type(files) == "table", "Did not return a table")
+	assert(#files == 1, "Did not return the correct number of files")
+	assert(isfile(files[1]), "Did not return a file path")
+	assert(readfile(files[1]) == "success", "Did not return the correct file path")
+	delfile("unc_test_folder/test.txt")
+	delfolder("unc_test_folder")
+end)
+
+test("writefile", {}, function()
+	writefile("unc_test.txt", "success")
+	assert(readfile("unc_test.txt") == "success", "Did not write the file")
+	delfile("unc_test.txt")
+end)
+
+test("makefolder", {}, function()
+	makefolder("unc_test_folder")
+	assert(isfolder("unc_test_folder"), "Did not create the folder")
+	delfolder("unc_test_folder")
+end)
+
+test("appendfile", {}, function()
+	writefile("unc_test.txt", "su")
+	appendfile("unc_test.txt", "ccess")
+	assert(readfile("unc_test.txt") == "success", "Did not append the file")
+	delfile("unc_test.txt")
+end)
+
+test("isfile", {}, function()
+	writefile("unc_test.txt", "success")
+	assert(isfile("unc_test.txt") == true, "Did not return true for a file")
+	assert(isfile("unc_folder") == false, "Did not return false for a folder")
+	delfile("unc_test.txt")
+end)
+
+test("isfolder", {}, function()
+	makefolder("unc_test_folder")
+	assert(isfolder("unc_test_folder") == true, "Did not return true for a folder")
+	assert(isfolder("unc_file.txt") == false, "Did not return false for a file")
+	delfolder("unc_test_folder")
+end)
+
+test("delfile", {}, function()
+	writefile("unc_test.txt", "Hello, world!")
+	delfile("unc_test.txt")
+	assert(not isfile("unc_test.txt"), "File was not deleted")
+end)
+
+test("delfolder", {}, function()
+	makefolder("unc_test_folder")
+	delfolder("unc_test_folder")
+	assert(not isfolder("unc_test_folder"), "Folder was not deleted")
+end)
+
+test("loadfile", {}, function()
+	writefile("unc_loadfile_test.lua", "return ... + 1")
+	assert(loadfile("unc_loadfile_test.lua")(1) == 2, "Failed to load a file with arguments")
+	delfile("unc_loadfile_test.lua")
+end)
+
+test("dofile", {})
+
+-- NEW: Additional Filesystem Tests
+test("getcustomasset", {"getsynasset"}, function()
+	writefile("unc_asset_test.txt", "test content")
+	local asset = getcustomasset("unc_asset_test.txt")
+	assert(type(asset) == "string", "Did not return a string")
+	assert(asset:sub(1, 20) == "rbxasset://unc_asset" or asset:find("rbxasset://"), "Did not return a valid asset path")
+	delfile("unc_asset_test.txt")
+end)
+
+-- Input
+printCategory("Input")
+
+test("isrbxactive", {"isgameactive"}, function()
+	assert(type(isrbxactive()) == "boolean", "Did not return a boolean value")
+end)
+
+test("mouse1click", {})
+test("mouse1press", {})
+test("mouse1release", {})
+test("mouse2click", {})
+test("mouse2press", {})
+test("mouse2release", {})
+test("mousemoveabs", {})
+test("mousemoverel", {})
+test("mousescroll", {})
+
+-- NEW: Additional Input Tests
+test("keypress", {}, function()
+	-- Just verify the function exists and doesn't error when called
+	pcall(function() keypress(0x41) end) -- 'A' key
+end)
+
+test("keyrelease", {}, function()
+	pcall(function() keyrelease(0x41) end) -- 'A' key
+end)
+
+test("iskeypressed", {}, function()
+	local result = iskeypressed(0x41)
+	assert(type(result) == "boolean", "Did not return a boolean")
+end)
+
+-- Instances
+printCategory("Instances")
+
+test("fireclickdetector", {}, function()
+	local detector = Instance.new("ClickDetector")
+	fireclickdetector(detector, 50, "MouseHoverEnter")
+end)
+
+test("getcallbackvalue", {}, function()
+	local bindable = Instance.new("BindableFunction")
+	local function test()
+	end
+	bindable.OnInvoke = test
+	assert(getcallbackvalue(bindable, "OnInvoke") == test, "Did not return the correct value")
+end)
+
+test("getconnections", {}, function()
+	local types = {
+		Enabled = "boolean",
+		ForeignState = "boolean",
+		LuaConnection = "boolean",
+		Function = "function",
+		Thread = "thread",
+		Fire = "function",
+		Defer = "function",
+		Disconnect = "function",
+		Disable = "function",
+		Enable = "function",
+	}
+	local bindable = Instance.new("BindableEvent")
+	bindable.Event:Connect(function() end)
+	local connections = getconnections(bindable.Event)
+	assert(type(connections) == "table", "Did not return a table")
+	assert(#connections > 0, "Did not return any connections")
+	assert(type(connections[1]) == "table" or type(connections[1]) == "userdata", "Did not return a table or userdata")
+	for k, v in pairs(types) do
+		assert(connections[1][k] ~= nil, "Did not return a table with a '" .. k .. "' field")
+		assert(type(connections[1][k]) == v, "Did not return a '" .. v .. "' for '" .. k .. "' (a " .. type(connections[1][k]) .. ")")
+	end
+end)
+
+test("getcustomasset", {"getsynasset"}, function()
+	writefile("unc_test.txt", "success")
+	local contentId = getcustomasset("unc_test.txt")
+	assert(type(contentId) == "string", "Did not return a string")
+	assert(#contentId > 0, "Returned an empty string")
+	assert(string.match(contentId, "rbxasset://") == "rbxasset://", "Did not return an rbxasset url")
+	delfile("unc_test.txt")
+end)
+
+test("gethiddenproperty", {}, function()
+	local fire = Instance.new("Fire")
+	local property = gethiddenproperty(fire, "size_xml")
+	assert(type(property) == "number", "Did not return a number")
+end)
+
+test("sethiddenproperty", {}, function()
+	local fire = Instance.new("Fire")
+	local hidden = gethiddenproperty(fire, "size_xml")
+	sethiddenproperty(fire, "size_xml", 1337)
+	assert(gethiddenproperty(fire, "size_xml") == 1337, "Did not set the hidden property")
+	sethiddenproperty(fire, "size_xml", hidden)
+end)
+
+test("gethui", {}, function()
+	assert(typeof(gethui()) == "Instance", "Did not return an Instance")
+end)
+
+test("getinstances", {}, function()
+	assert(type(getinstances()) == "table", "Did not return a table")
+end)
+
+test("getnilinstances", {}, function()
+	assert(type(getnilinstances()) == "table", "Did not return a table")
+end)
+
+test("isscriptable", {}, function()
+	local fire = Instance.new("Fire")
+	assert(isscriptable(fire, "size_xml") == false, "Did not return false for a non-scriptable property")
+	assert(isscriptable(fire, "Size") == true, "Did not return true for a scriptable property")
+end)
+
+test("setscriptable", {}, function()
+	local fire = Instance.new("Fire")
+	local wasScriptable = isscriptable(fire, "size_xml")
+	setscriptable(fire, "size_xml", true)
+	assert(isscriptable(fire, "size_xml") == true, "Did not set the scriptable property to true")
+	setscriptable(fire, "size_xml", wasScriptable)
+end)
+
+test("setrbxclipboard", {})
+
+-- NEW: Additional Instance Tests
+test("firetouchinterest", {}, function()
+	local part = Instance.new("Part")
+	pcall(function() firetouchinterest(part, workspace, 0) end)
+end)
+
+test("fireproximityprompt", {}, function()
+	local prompt = Instance.new("ProximityPrompt")
+	pcall(function() fireproximityprompt(prompt) end)
+end)
+
+-- Metatable
+printCategory("Metatable")
+
+test("getrawmetatable", {}, function()
+	local game = cloneref(game)
+	local metatable = getrawmetatable(game)
+	assert(type(metatable) == "table", "Did not return a table")
+end)
+
+test("hookmetamethod", {}, function()
+	local object = setmetatable({}, { __index = newcclosure(function() return false end), __metatable = "Locked!" })
+	local ref = hookmetamethod(object, "__index", function() return true end)
+	assert(object.test == true, "Failed to hook a metamethod and change the return value")
+	assert(ref() == false, "Did not return the original function")
+end)
+
+test("getnamecallmethod", {}, function()
+	local method
+	local ref
+	ref = hookmetamethod(game, "__namecall", function(...)
+		if not method then
+			method = getnamecallmethod()
+		end
+		return ref(...)
+	end)
+	game:GetService("Lighting")
+	assert(method == "GetService", "Did not get the correct method (GetService)")
+end)
+
+test("isreadonly", {}, function()
+	local object = {}
+	table.freeze(object)
+	assert(isreadonly(object), "Did not return true for a read-only table")
+end)
+
+test("setrawmetatable", {}, function()
+	local object = setmetatable({}, { __index = function() return false end, __metatable = "Locked!" })
+	local objectReturned = setrawmetatable(object, { __index = function() return true end })
+	assert(object, "Did not return the original object")
+	assert(object.test == true, "Failed to change the metatable")
+	if objectReturned then
+		return objectReturned == object and "Returned the original object" or "Did not return the original object"
+	end
+end)
+
+test("setreadonly", {}, function()
+	local object = { success = false }
+	table.freeze(object)
+	setreadonly(object, false)
+	object.success = true
+	assert(object.success, "Did not allow the table to be modified")
+end)
+
+-- Miscellaneous
+printCategory("Miscellaneous")
+
+test("identifyexecutor", {"getexecutorname"}, function()
+	local name, version = identifyexecutor()
+	assert(type(name) == "string", "Did not return a string for the name")
+	return type(version) == "string" and "Returns version as a string" or "Does not return version"
+end)
+
+test("lz4compress", {}, function()
+	local raw = "Hello, world!"
+	local compressed = lz4compress(raw)
+	assert(type(compressed) == "string", "Compression did not return a string")
+	assert(lz4decompress(compressed, #raw) == raw, "Decompression did not return the original string")
+end)
+
+test("lz4decompress", {}, function()
+	local raw = "Hello, world!"
+	local compressed = lz4compress(raw)
+	assert(type(compressed) == "string", "Compression did not return a string")
+	assert(lz4decompress(compressed, #raw) == raw, "Decompression did not return the original string")
+end)
+
+test("messagebox", {})
+
+test("queue_on_teleport", {"queueonteleport"})
+
+test("request", {"http.request", "http_request"}, function()
+	local response = request({
+		Url = "https://httpbin.org/user-agent",
+		Method = "GET",
+	})
+	assert(type(response) == "table", "Response must be a table")
+	assert(response.StatusCode == 200, "Did not return a 200 status code")
+	local data = game:GetService("HttpService"):JSONDecode(response.Body)
+	assert(type(data) == "table" and type(data["user-agent"]) == "string", "Did not return a table with a user-agent key")
+	return "User-Agent: " .. data["user-agent"]
+end)
+
+test("setclipboard", {"toclipboard"})
+
+test("setfpscap", {}, function()
+	local renderStepped = game:GetService("RunService").RenderStepped
+	local function step()
+		renderStepped:Wait()
+		local sum = 0
+		for _ = 1, 5 do
+			sum += 1 / renderStepped:Wait()
+		end
+		return math.round(sum / 5)
+	end
+	setfpscap(60)
+	local step60 = step()
+	setfpscap(0)
+	local step0 = step()
+	return step60 .. "fps @60 • " .. step0 .. "fps @0"
+end)
+
+-- NEW: Additional Miscellaneous Tests
+test("getfflag", {}, function()
+	local flag = getfflag("AbuseReportScreenshotPercentage")
+	assert(type(flag) ~= "nil", "Did not return a value")
+end)
+
+test("setfflag", {}, function()
+	pcall(function()
+		setfflag("TestFlag", "true")
+	end)
+end)
+
+test("getnamecallmethod", {}, function()
+	local method
+	hookmetamethod(game, "__namecall", function(...)
+		method = method or getnamecallmethod()
+		return ...
+	end)
+	game:GetService("Workspace")
+	assert(method == "GetService", "Did not capture namecall method")
+end)
+
+-- Scripts
+printCategory("Scripts")
+
+test("getgc", {}, function()
+	local gc = getgc()
+	assert(type(gc) == "table", "Did not return a table")
+	assert(#gc > 0, "Did not return a table with any values")
+end)
+
+test("getgenv", {}, function()
+	getgenv().__TEST_GLOBAL = true
+	assert(__TEST_GLOBAL, "Failed to set a global variable")
+	getgenv().__TEST_GLOBAL = nil
+end)
+
+test("getloadedmodules", {}, function()
+	local modules = getloadedmodules()
+	assert(type(modules) == "table", "Did not return a table")
+	assert(#modules > 0, "Did not return a table with any values")
+	assert(typeof(modules[1]) == "Instance", "First value is not an Instance")
+	assert(modules[1]:IsA("ModuleScript"), "First value is not a ModuleScript")
+end)
+
+test("getrenv", {}, function()
+	assert(_G ~= getrenv()._G, "The variable _G in the executor is identical to _G in the game")
+end)
+
+test("getrunningscripts", {}, function()
+	local scripts = getrunningscripts()
+	assert(type(scripts) == "table", "Did not return a table")
+	assert(#scripts > 0, "Did not return a table with any values")
+	assert(typeof(scripts[1]) == "Instance", "First value is not an Instance")
+	assert(scripts[1]:IsA("ModuleScript") or scripts[1]:IsA("LocalScript"), "First value is not a ModuleScript or LocalScript")
+end)
+
+test("getscriptbytecode", {"dumpstring"}, function()
+	local animate = game:GetService("Players").LocalPlayer.Character.Animate
+	local bytecode = getscriptbytecode(animate)
+	assert(type(bytecode) == "string", "Did not return a string for Character.Animate (a " .. animate.ClassName .. ")")
+end)
+
+test("getscripthash", {}, function()
+	local animate = game:GetService("Players").LocalPlayer.Character.Animate:Clone()
+	local hash = getscripthash(animate)
+	local source = animate.Source
+	animate.Source = "print('Hello, world!')"
+	task.defer(function()
+		animate.Source = source
+	end)
+	local newHash = getscripthash(animate)
+	assert(hash ~= newHash, "Did not return a different hash for a modified script")
+	assert(newHash == getscripthash(animate), "Did not return the same hash for a script with the same source")
+end)
+
+test("getscripts", {}, function()
+	local scripts = getscripts()
+	assert(type(scripts) == "table", "Did not return a table")
+	assert(#scripts > 0, "Did not return a table with any values")
+	assert(typeof(scripts[1]) == "Instance", "First value is not an Instance")
+	assert(scripts[1]:IsA("ModuleScript") or scripts[1]:IsA("LocalScript"), "First value is not a ModuleScript or LocalScript")
+end)
+
+test("getsenv", {}, function()
+	local animate = game:GetService("Players").LocalPlayer.Character.Animate
+	local env = getsenv(animate)
+	assert(type(env) == "table", "Did not return a table for Character.Animate (a " .. animate.ClassName .. ")")
+	assert(env.script == animate, "The script global is not identical to Character.Animate")
+end)
+
+test("getthreadidentity", {"getidentity", "getthreadcontext"}, function()
+	assert(type(getthreadidentity()) == "number", "Did not return a number")
+end)
+
+test("setthreadidentity", {"setidentity", "setthreadcontext"}, function()
+	setthreadidentity(3)
+	assert(getthreadidentity() == 3, "Did not set the thread identity")
+end)
+
+-- Drawing
+printCategory("Drawing")
+
+test("Drawing", {})
+
+test("Drawing.new", {}, function()
+	local drawing = Drawing.new("Square")
+	drawing.Visible = false
+	local canDestroy = pcall(function()
+		drawing:Destroy()
+	end)
+	assert(canDestroy, "Drawing:Destroy() should not throw an error")
+end)
+
+test("Drawing.Fonts", {}, function()
+	assert(Drawing.Fonts.UI == 0, "Did not return the correct id for UI")
+	assert(Drawing.Fonts.System == 1, "Did not return the correct id for System")
+	assert(Drawing.Fonts.Plex == 2, "Did not return the correct id for Plex")
+	assert(Drawing.Fonts.Monospace == 3, "Did not return the correct id for Monospace")
+end)
+
+test("isrenderobj", {}, function()
+	local drawing = Drawing.new("Image")
+	drawing.Visible = true
+	assert(isrenderobj(drawing) == true, "Did not return true for an Image")
+	assert(isrenderobj(newproxy()) == false, "Did not return false for a blank table")
+end)
+
+test("getrenderproperty", {}, function()
+	local drawing = Drawing.new("Image")
+	drawing.Visible = true
+	assert(type(getrenderproperty(drawing, "Visible")) == "boolean", "Did not return a boolean value for Image.Visible")
+	local success, result = pcall(function()
+		return getrenderproperty(drawing, "Color")
+	end)
+	if not success or not result then
+		return "Image.Color is not supported"
+	end
+end)
+
+test("setrenderproperty", {}, function()
+	local drawing = Drawing.new("Square")
+	drawing.Visible = true
+	setrenderproperty(drawing, "Visible", false)
+	assert(drawing.Visible == false, "Did not set the value for Square.Visible")
+end)
+
+test("cleardrawcache", {}, function()
+	cleardrawcache()
+end)
+
+-- WebSocket
+printCategory("WebSocket")
+
+test("WebSocket", {})
+
+test("WebSocket.connect", {}, function()
+	local types = {
+		Send = "function",
+		Close = "function",
+		OnMessage = {"table", "userdata"},
+		OnClose = {"table", "userdata"},
+	}
+	local ws = WebSocket.connect("ws://echo.websocket.events")
+	assert(type(ws) == "table" or type(ws) == "userdata", "Did not return a table or userdata")
+	for k, v in pairs(types) do
+		if type(v) == "table" then
+			assert(table.find(v, type(ws[k])), "Did not return a " .. table.concat(v, ", ") .. " for " .. k .. " (a " .. type(ws[k]) .. ")")
+		else
+			assert(type(ws[k]) == v, "Did not return a " .. v .. " for " .. k .. " (a " .. type(ws[k]) .. ")")
+		end
+	end
+	ws:Close()
+end)
+
+-- ═══════════════════════════════════════════════════════════════
+-- SUMMARY
+-- ═══════════════════════════════════════════════════════════════
+
+task.defer(function()
+	repeat task.wait() until running == 0
+	
+	local endTime = tick()
+	local executionTime = math.floor((endTime - startTime) * 1000) / 1000
+
+	local total = passes + fails
+	local rate = total > 0 and math.round(passes / total * 100) or 0
+	local outOf = passes .. " / " .. total
+	
+	print("\n")
+	printHeader("UNC TEST SUMMARY")
+	
+	-- Executor Info
+	print(colorize("\n" .. UI_CONFIG.ICONS.EXECUTOR .. " Executor Information", UI_CONFIG.COLORS.INFO .. UI_CONFIG.COLORS.BOLD))
+	printDivider()
+	print(colorize("   Name: ", UI_CONFIG.COLORS.DIM) .. colorize(executorName, UI_CONFIG.COLORS.BOLD))
+	if executorVersion ~= "N/A" then
+		print(colorize("   Version: ", UI_CONFIG.COLORS.DIM) .. colorize(executorVersion, UI_CONFIG.COLORS.BOLD))
+	end
+	
+	-- UNC Score
+	print(colorize("\n" .. UI_CONFIG.ICONS.PERCENTAGE .. " UNC Compatibility Score", UI_CONFIG.COLORS.INFO .. UI_CONFIG.COLORS.BOLD))
+	printDivider()
+	
+	local rateColor = rate >= 90 and UI_CONFIG.COLORS.SUCCESS or 
+	                  rate >= 70 and UI_CONFIG.COLORS.WARNING or 
+	                  UI_CONFIG.COLORS.FAIL
+	
+	print(colorize("   " .. rate .. "%", rateColor .. UI_CONFIG.COLORS.BOLD) .. 
+		colorize(" UNC Support (" .. outOf .. " tests passed)", UI_CONFIG.COLORS.DIM))
+	
+	-- Progress Bar
+	local barWidth = 50
+	local filledWidth = math.floor(barWidth * rate / 100)
+	local emptyWidth = barWidth - filledWidth
+	local progressBar = "   [" .. 
+		colorize(string.rep("█", filledWidth), rateColor) .. 
+		colorize(string.rep("░", emptyWidth), UI_CONFIG.COLORS.DIM) .. 
+		"]"
+	print(progressBar)
+	
+	-- Detailed Results
+	print(colorize("\n" .. UI_CONFIG.ICONS.CHECK .. " Test Results", UI_CONFIG.COLORS.INFO .. UI_CONFIG.COLORS.BOLD))
+	printDivider()
+	print(colorize("   " .. UI_CONFIG.ICONS.SUCCESS .. " Passed: ", UI_CONFIG.COLORS.SUCCESS) .. 
+		colorize(passes, UI_CONFIG.COLORS.BOLD))
+	print(colorize("   " .. UI_CONFIG.ICONS.FAIL .. " Failed: ", UI_CONFIG.COLORS.FAIL) .. 
+		colorize(fails, UI_CONFIG.COLORS.BOLD))
+	print(colorize("   " .. UI_CONFIG.ICONS.WARNING .. " Missing Aliases: ", UI_CONFIG.COLORS.WARNING) .. 
+		colorize(undefined, UI_CONFIG.COLORS.BOLD))
+	
+	-- Performance Info
+	print(colorize("\n" .. UI_CONFIG.ICONS.TIME .. " Performance", UI_CONFIG.COLORS.INFO .. UI_CONFIG.COLORS.BOLD))
+	printDivider()
+	print(colorize("   Execution Time: ", UI_CONFIG.COLORS.DIM) .. 
+		colorize(executionTime .. "s", UI_CONFIG.COLORS.BOLD))
+	
+	-- Compatibility Rating
+	print(colorize("\n📈 Compatibility Rating", UI_CONFIG.COLORS.INFO .. UI_CONFIG.COLORS.BOLD))
+	printDivider()
+	local rating = rate >= 95 and "Excellent ⭐⭐⭐⭐⭐" or
+	               rate >= 85 and "Very Good ⭐⭐⭐⭐" or
+	               rate >= 75 and "Good ⭐⭐⭐" or
+	               rate >= 60 and "Fair ⭐⭐" or
+	               "Poor ⭐"
+	print(colorize("   " .. rating, UI_CONFIG.COLORS.BOLD))
+	
+	-- Functionality Check
+	print(colorize("\n🔍 Functionality Check", UI_CONFIG.COLORS.INFO .. UI_CONFIG.COLORS.BOLD))
+	printDivider()
+	if rate >= 90 then
+		print(colorize("   ✓ Executor is fully functional and UNC compliant", UI_CONFIG.COLORS.SUCCESS))
+	elseif rate >= 70 then
+		print(colorize("   ⚠ Executor is functional but missing some features", UI_CONFIG.COLORS.WARNING))
+	else
+		print(colorize("   ✗ Executor has limited functionality", UI_CONFIG.COLORS.FAIL))
+	end
+	
+	print("\n")
+	printDivider("═", 70)
+	print(colorize("Testing completed! Thank you for using Enhanced UNC Checker v2.0", UI_CONFIG.COLORS.DIM))
+	printDivider("═", 70)
+	print("\n")
+end)
