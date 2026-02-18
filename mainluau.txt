@@ -1,0 +1,1242 @@
+--[[
+╔══════════════════════════════════════════════════════════╗
+║      EXTERNALITY MADE IN HEAVEN — WindUI Edition         ║
+║      Violet Abyss Theme  ·  v6.0  ·  by GamerScripter   ║
+╚══════════════════════════════════════════════════════════╝
+]]
+
+local RunService = game:GetService("RunService")
+local Players   = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local LocalPlayer = Players.LocalPlayer
+
+local cloneref = (cloneref or clonereference or function(i) return i end)
+local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  VIOLET ABYSS SPLASH SCREEN
+-- ══════════════════════════════════════════════════════════════
+local _EXT_PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local _extSplash = Instance.new("ScreenGui")
+_extSplash.Name = "EXT_Splash"
+_extSplash.ResetOnSpawn = false
+_extSplash.IgnoreGuiInset = true
+_extSplash.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+_extSplash.Parent = _EXT_PlayerGui
+
+local _extOverlay = Instance.new("Frame")
+_extOverlay.Size = UDim2.new(1, 0, 1, 0)
+_extOverlay.BackgroundColor3 = Color3.fromRGB(4, 4, 8)
+_extOverlay.BorderSizePixel = 0
+_extOverlay.Parent = _extSplash
+local _extBgGrad = Instance.new("UIGradient")
+_extBgGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(6, 0, 18)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(12, 4, 30)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(4, 0, 14)),
+})
+_extBgGrad.Rotation = 135
+_extBgGrad.Parent = _extOverlay
+
+local _extOrb = Instance.new("Frame")
+_extOrb.AnchorPoint = Vector2.new(0.5, 0.5)
+_extOrb.Size = UDim2.new(0, 320, 0, 320)
+_extOrb.Position = UDim2.new(0.5, 0, 0.5, 0)
+_extOrb.BackgroundColor3 = Color3.fromRGB(110, 30, 220)
+_extOrb.BackgroundTransparency = 0.85
+_extOrb.BorderSizePixel = 0
+_extOrb.Parent = _extSplash
+Instance.new("UICorner", _extOrb).CornerRadius = UDim.new(1, 0)
+
+local _extCard = Instance.new("Frame")
+_extCard.AnchorPoint = Vector2.new(0.5, 0.5)
+_extCard.Size = UDim2.new(0, 280, 0, 300)
+_extCard.Position = UDim2.new(0.5, 0, 2.0, 0)
+_extCard.BackgroundColor3 = Color3.fromRGB(10, 8, 18)
+_extCard.BorderSizePixel = 0
+_extCard.Parent = _extSplash
+Instance.new("UICorner", _extCard).CornerRadius = UDim.new(0, 20)
+local _extCardGrad = Instance.new("UIGradient")
+_extCardGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(16, 10, 30)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 5, 18)),
+})
+_extCardGrad.Rotation = 120
+_extCardGrad.Parent = _extCard
+
+local _extStroke = Instance.new("UIStroke", _extCard)
+_extStroke.Color = Color3.fromRGB(160, 60, 255)
+_extStroke.Thickness = 2
+_extStroke.Transparency = 0.1
+
+local _extAccent = Instance.new("Frame")
+_extAccent.Size = UDim2.new(0.6, 0, 0, 3)
+_extAccent.Position = UDim2.new(0.2, 0, 0, 0)
+_extAccent.BackgroundColor3 = Color3.fromRGB(180, 80, 255)
+_extAccent.BorderSizePixel = 0
+_extAccent.Parent = _extCard
+local _extAccentGrad = Instance.new("UIGradient")
+_extAccentGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 20, 200)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 100, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 20, 200)),
+})
+_extAccentGrad.Parent = _extAccent
+Instance.new("UICorner", _extAccent).CornerRadius = UDim.new(1, 0)
+
+local _extLogoRing = Instance.new("Frame")
+_extLogoRing.AnchorPoint = Vector2.new(0.5, 0)
+_extLogoRing.Size = UDim2.new(0, 104, 0, 104)
+_extLogoRing.Position = UDim2.new(0.5, 0, 0, 22)
+_extLogoRing.BackgroundColor3 = Color3.fromRGB(140, 50, 255)
+_extLogoRing.BackgroundTransparency = 0.5
+_extLogoRing.BorderSizePixel = 0
+_extLogoRing.Parent = _extCard
+Instance.new("UICorner", _extLogoRing).CornerRadius = UDim.new(1, 0)
+
+local _extLogo = Instance.new("ImageLabel")
+_extLogo.AnchorPoint = Vector2.new(0.5, 0.5)
+_extLogo.Size = UDim2.new(0, 90, 0, 90)
+_extLogo.Position = UDim2.new(0.5, 0, 0.5, 0)
+_extLogo.BackgroundTransparency = 1
+_extLogo.Image = "rbxassetid://17556117242"
+_extLogo.Parent = _extLogoRing
+Instance.new("UICorner", _extLogo).CornerRadius = UDim.new(1, 0)
+
+local _extTitle = Instance.new("TextLabel")
+_extTitle.Size = UDim2.new(1, -20, 0, 32)
+_extTitle.Position = UDim2.new(0, 10, 0, 138)
+_extTitle.BackgroundTransparency = 1
+_extTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+_extTitle.TextSize = 20
+_extTitle.Font = Enum.Font.GothamBold
+_extTitle.Text = "EXTERNALITY"
+_extTitle.TextXAlignment = Enum.TextXAlignment.Center
+_extTitle.Parent = _extCard
+
+local _extMIH = Instance.new("TextLabel")
+_extMIH.Size = UDim2.new(1, -20, 0, 22)
+_extMIH.Position = UDim2.new(0, 10, 0, 168)
+_extMIH.BackgroundTransparency = 1
+_extMIH.TextColor3 = Color3.fromRGB(180, 90, 255)
+_extMIH.TextSize = 13
+_extMIH.Font = Enum.Font.GothamMedium
+_extMIH.Text = "✦  MADE IN HEAVEN  ✦"
+_extMIH.TextXAlignment = Enum.TextXAlignment.Center
+_extMIH.Parent = _extCard
+
+local _extBarBg = Instance.new("Frame")
+_extBarBg.Size = UDim2.new(0, 220, 0, 6)
+_extBarBg.Position = UDim2.new(0.5, -110, 0, 208)
+_extBarBg.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
+_extBarBg.BorderSizePixel = 0
+_extBarBg.Parent = _extCard
+Instance.new("UICorner", _extBarBg).CornerRadius = UDim.new(1, 0)
+
+local _extBar = Instance.new("Frame")
+_extBar.Size = UDim2.new(0, 0, 1, 0)
+_extBar.BackgroundColor3 = Color3.fromRGB(160, 60, 255)
+_extBar.BorderSizePixel = 0
+_extBar.Parent = _extBarBg
+Instance.new("UICorner", _extBar).CornerRadius = UDim.new(1, 0)
+local _extBarGrad = Instance.new("UIGradient")
+_extBarGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 40, 220)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(210, 130, 255)),
+})
+_extBarGrad.Parent = _extBar
+
+local _extSub = Instance.new("TextLabel")
+_extSub.Size = UDim2.new(1, -20, 0, 22)
+_extSub.Position = UDim2.new(0, 10, 0, 222)
+_extSub.BackgroundTransparency = 1
+_extSub.TextColor3 = Color3.fromRGB(130, 80, 200)
+_extSub.TextSize = 11
+_extSub.Font = Enum.Font.GothamMedium
+_extSub.Text = "Initializing..."
+_extSub.TextXAlignment = Enum.TextXAlignment.Center
+_extSub.Parent = _extCard
+
+local _extVer = Instance.new("TextLabel")
+_extVer.Size = UDim2.new(1, -20, 0, 18)
+_extVer.Position = UDim2.new(0, 10, 0, 272)
+_extVer.BackgroundTransparency = 1
+_extVer.TextColor3 = Color3.fromRGB(80, 50, 120)
+_extVer.TextSize = 10
+_extVer.Font = Enum.Font.Gotham
+_extVer.Text = "v6.0 · WindUI Edition · Violet Abyss"
+_extVer.TextXAlignment = Enum.TextXAlignment.Center
+_extVer.Parent = _extCard
+
+-- Glow ring pulse
+task.spawn(function()
+    while _extLogoRing and _extLogoRing.Parent do
+        TweenService:Create(_extLogoRing, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {BackgroundTransparency = 0.2}):Play()
+        task.wait(1.2)
+        TweenService:Create(_extLogoRing, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {BackgroundTransparency = 0.7}):Play()
+        task.wait(1.2)
+    end
+end)
+
+-- Border hue animation
+task.spawn(function()
+    local hue = 0
+    while _extStroke and _extStroke.Parent do
+        hue = (hue + 0.005) % 1
+        _extStroke.Color = Color3.fromHSV(0.72 + math.sin(hue * math.pi * 2) * 0.06, 0.8, 1)
+        task.wait(0.03)
+    end
+end)
+
+-- Splash sequence
+coroutine.wrap(function()
+    _extCard:TweenPosition(UDim2.new(0.5, 0, 0.5, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Back, 1.0, true)
+    task.wait(0.8)
+    local _phases = {
+        {text = "⬡  Connecting to servers...", pct = 0.15},
+        {text = "⬡  Loading WindUI library...", pct = 0.38},
+        {text = "⬡  Compiling violet theme...", pct = 0.58},
+        {text = "⬡  Loading game scripts...", pct = 0.78},
+        {text = "⬡  Finalizing Heaven...", pct = 0.93},
+    }
+    for _, phase in ipairs(_phases) do
+        _extSub.Text = phase.text
+        TweenService:Create(_extBar, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(phase.pct, 0, 1, 0)
+        }):Play()
+        task.wait(0.48)
+    end
+    _extSub.Text = "✓  Loaded Successfully"
+    _extSub.TextColor3 = Color3.fromRGB(140, 255, 160)
+    TweenService:Create(_extBar, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = UDim2.new(1, 0, 1, 0)
+    }):Play()
+    task.wait(0.8)
+    _extCard:TweenPosition(UDim2.new(0.5, 0, 2.0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Back, 0.8, true)
+    TweenService:Create(_extOverlay, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency = 1}):Play()
+    task.wait(1)
+    _extSplash:Destroy()
+end)()
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  LOAD WINDUI
+-- ══════════════════════════════════════════════════════════════
+local WindUI
+
+do
+    local ok, result = pcall(function()
+        return require("./src/Init")
+    end)
+    if ok then
+        WindUI = result
+    else
+        if cloneref(game:GetService("RunService")):IsStudio() then
+            WindUI = require(cloneref(ReplicatedStorage:WaitForChild("WindUI"):WaitForChild("Init")))
+        else
+            WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+        end
+    end
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  VIOLET ABYSS COLOR PALETTE
+-- ══════════════════════════════════════════════════════════════
+local Violet    = Color3.fromHex("#A855F7")
+local VioletDim = Color3.fromHex("#7E22CE")
+local Lavender  = Color3.fromHex("#C4B5FD")
+local Pink      = Color3.fromHex("#EC4899")
+local Cyan      = Color3.fromHex("#22D3EE")
+local Green     = Color3.fromHex("#4ADE80")
+local Red       = Color3.fromHex("#F87171")
+local Grey      = Color3.fromHex("#94A3B8")
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  PLAYER INFO
+-- ══════════════════════════════════════════════════════════════
+local PlayerName    = LocalPlayer.Name
+local DisplayName   = LocalPlayer.DisplayName
+local UserId        = LocalPlayer.UserId
+local AccountAge    = LocalPlayer.AccountAge
+
+local GameName  = "Unknown"
+local GameId    = game.PlaceId
+pcall(function()
+    GameName = MarketplaceService:GetProductInfo(GameId).Name
+end)
+
+local Executor = "Unknown"
+pcall(function()
+    Executor = identifyexecutor() or "Unknown"
+end)
+
+local Device = "PC"
+if UserInputService.GamepadEnabled then
+    Device = "Controller"
+elseif UserInputService.TouchEnabled then
+    Device = "Mobile"
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  WATERMARK
+-- ══════════════════════════════════════════════════════════════
+local WatermarkGui = Instance.new("ScreenGui")
+WatermarkGui.Name = "EXT_Watermark"
+WatermarkGui.ResetOnSpawn = false
+WatermarkGui.Parent = _EXT_PlayerGui
+
+local WatermarkLabel = Instance.new("TextLabel")
+WatermarkLabel.Parent = WatermarkGui
+WatermarkLabel.BackgroundTransparency = 1
+WatermarkLabel.BorderSizePixel = 0
+WatermarkLabel.Position = UDim2.new(0, 6, 0, 6)
+WatermarkLabel.Size = UDim2.new(0, 280, 0, 20)
+WatermarkLabel.Font = Enum.Font.GothamBold
+WatermarkLabel.Text = "  ✦ Externality Made In Heaven — WindUI  "
+WatermarkLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+WatermarkLabel.TextSize = 13
+WatermarkLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local _wmHue = 0
+RunService.RenderStepped:Connect(function()
+    _wmHue = (_wmHue + 0.008) % 1
+    WatermarkLabel.TextColor3 = Color3.fromHSV(_wmHue, 0.75, 1)
+end)
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  CREATE WINDUI WINDOW  (Violet Abyss Theme)
+-- ══════════════════════════════════════════════════════════════
+local Window = WindUI:CreateWindow({
+    Title = "Externality Made In Heaven",
+    Folder = "ExternalityMIH",
+    Icon = "solar:planet-bold-duotone",
+    Theme = "Dark",
+    NewElements = true,
+    HideSearchBar = false,
+
+    OpenButton = {
+        Title = "✦ EXT MIH",
+        CornerRadius = UDim.new(0, 8),
+        StrokeThickness = 2,
+        Enabled = true,
+        Draggable = true,
+        OnlyMobile = false,
+        Scale = 0.5,
+        Color = ColorSequence.new(
+            Color3.fromRGB(120, 40, 220),
+            Color3.fromRGB(200, 100, 255)
+        ),
+    },
+    Topbar = {
+        Height = 44,
+        ButtonsType = "Mac",
+    },
+})
+
+-- Version tag
+Window:Tag({
+    Title = "v6.0 · Violet Abyss",
+    Icon = "star",
+    Color = Color3.fromRGB(120, 40, 200),
+    Border = true,
+})
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  SECTIONS
+-- ══════════════════════════════════════════════════════════════
+local HomeSection        = Window:Section({ Title = "Home" })
+local GamesSection       = Window:Section({ Title = "Games" })
+local HubGuiSection      = Window:Section({ Title = "Hub | Gui" })
+local FeSection          = Window:Section({ Title = "Fe" })
+local OtherSection       = Window:Section({ Title = "Other" })
+local SettingsSection    = Window:Section({ Title = "Settings" })
+local ShowcaserSection   = Window:Section({ Title = "Showcaser" })
+local CreditsSection     = Window:Section({ Title = "Credits" })
+local UpdateLogSection   = Window:Section({ Title = "Update Log" })
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  HOME TAB
+-- ══════════════════════════════════════════════════════════════
+do
+    local HomeTab = HomeSection:Tab({
+        Title = "Home",
+        Icon = "solar:home-2-bold",
+        IconColor = Violet,
+        IconShape = "Square",
+        Border = true,
+    })
+
+    HomeTab:Section({
+        Title = "Welcome " .. DisplayName .. " — Externality Made In Heaven",
+        TextSize = 20,
+    })
+
+    HomeTab:Space()
+
+    local InfoSection = HomeTab:Section({
+        Title = "Player Info",
+        Box = true,
+        BoxBorder = true,
+        Opened = true,
+    })
+
+    local function infoLabel(text)
+        InfoSection:Section({ Title = text, TextSize = 14, TextTransparency = 0.25 })
+    end
+
+    infoLabel("👤  Username: " .. PlayerName)
+    infoLabel("🏷  Display Name: " .. DisplayName)
+    infoLabel("🆔  User ID: " .. tostring(UserId))
+    infoLabel("📅  Account Age: " .. tostring(AccountAge) .. " days")
+    infoLabel("⚡  Executor: " .. Executor)
+    infoLabel("💻  Device: " .. Device)
+
+    HomeTab:Space()
+
+    HomeTab:Section({ Title = "────────────────────────────────", TextSize = 12, TextTransparency = 0.6 })
+    HomeTab:Section({ Title = "Externality Made In Heaven — WindUI · Violet Abyss Edition", TextSize = 13, TextTransparency = 0.35 })
+
+    HomeTab:Space()
+
+    HomeTab:Button({
+        Title = "Destroy Script",
+        Color = Red,
+        Icon = "shredder",
+        IconAlign = "Left",
+        Justify = "Center",
+        Callback = function()
+            Window:Destroy()
+            WatermarkGui:Destroy()
+        end
+    })
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  GAMES TAB
+-- ══════════════════════════════════════════════════════════════
+do
+    local GamesTab = GamesSection:Tab({
+        Title = "Games",
+        Icon = "solar:gamepad-bold",
+        IconColor = Cyan,
+        IconShape = "Square",
+        Border = true,
+    })
+
+    GamesTab:Section({ Title = "Current Game: " .. GameName .. " | " .. tostring(GameId), TextSize = 13 })
+    GamesTab:Space()
+
+    local function GameDropdown(tab, title, opts, callbacks)
+        tab:Dropdown({
+            Title = title,
+            Desc = "Credits to Owner",
+            Values = opts,
+            Value = nil,
+            AllowNone = true,
+            Callback = function(selected)
+                if callbacks[selected] then
+                    callbacks[selected]()
+                end
+            end
+        })
+        tab:Space()
+    end
+
+    GameDropdown(GamesTab, "Adopt Me", {"Eazvy Hub","Eclipse Hub","Ice Hub","Prodigy X","Speed Hub X","V.G Hub"}, {
+        ["Eazvy Hub"]    = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Eazvy/Eazvy-Hub/main/GameLoader.lua"))() end,
+        ["Eclipse Hub"]  = function() getgenv().mainKey="nil" loadstring((function() local r=request or http_request; return r({Url="https://api.eclipsehub.xyz/auth?key=nil",Headers={["User-Agent"]="Eclipse"}}).Body end)())() end,
+        ["Ice Hub"]      = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/IceMael7/NewIceHub/main/Brookhaven"))() end,
+        ["Prodigy X"]    = function() loadstring(game:HttpGet("https://gitfront.io/r/ReQiuYTPL/wFUydaK74uGx/hub/raw/ReQiuYTPLHub.lua",true))() end,
+        ["Speed Hub X"]  = function() loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ahmadsgamer2/Script--Game/main/Script%20Game"))() end,
+        ["V.G Hub"]      = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/1201for/V.G-Hub/main/V.Ghub"))() end,
+    })
+
+    GameDropdown(GamesTab, "All Star Tower Defense", {"KarmaPanda","Trap Hub"}, {
+        ["KarmaPanda"] = function() loadstring(game:HttpGet("https://script.karmapanda.dev/"))() end,
+        ["Trap Hub"]   = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/TrapstarKSSKSKSKKS/Main/main/TrapHub.lua"))() end,
+    })
+
+    GameDropdown(GamesTab, "Anime Adventures", {"Anime Adventures by Craymel02","Arpon Hub","Crimson Hub","Keybrew Hub","Trap Hub"}, {
+        ["Anime Adventures by Craymel02"] = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ArponAG/Scripts/main/AnimeAdventures.lua"))() end,
+        ["Arpon Hub"]    = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ArponAG/Scripts/main/AnimeAdventures_v2__Beta.lua"))() end,
+        ["Crimson Hub"]  = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/TirSANX/CrimsonHUB/main/C_Loader"))() end,
+        ["Keybrew Hub"]  = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/borntodiekuv/KeybrewHub/main/AA"))() end,
+        ["Trap Hub"]     = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/TrapstarKSSKSKSKKS/Main/main/TrapHub.lua"))() end,
+    })
+
+    GameDropdown(GamesTab, "Anime Champions Simulator", {"Banana Hub","Fazium Hub","HarPy","Krzysztof Hub","Muimi Hub","Perfectus Hub","Sky Hub","Yuto Hub"}, {
+        ["Banana Hub"]    = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/diepedyt/bui/main/temporynewkeysystem.lua"))() end,
+        ["Fazium Hub"]    = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ZaRdoOx/Fazium-files/main/Loader"))() end,
+        ["HarPy"]         = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/xShadow1234/HarPy/main/HarPy_loader.lua"))() end,
+        ["Krzysztof Hub"] = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/KrzysztofHub/script/main/loader.lua"))() end,
+        ["Muimi Hub"]     = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bunny42312/script/main/acs"))() end,
+        ["Perfectus Hub"] = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/PerfectusMim/Perfectus-Hub/main/perfectus-hub"))() end,
+        ["Sky Hub"]       = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/SKOIXLL/RIVERHUB-SKYHUB/main/WL.lua"))() end,
+        ["Yuto Hub"]      = function() repeat task.wait() until game:IsLoaded(); loadstring(game:HttpGet("https://raw.githubusercontent.com/Binintrozza/yutv2e/main/ACS"))() end,
+    })
+
+    GameDropdown(GamesTab, "Anime Dimensions", {"Anime Ghost","Bird Hub","Intruders","Itachi"}, {
+        ["Anime Ghost"] = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/animeghostscript/animeghost/main/animeghost.lua"))() end,
+        ["Bird Hub"]    = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/TheWitch-BirdHub/BirdHubv0.1/main/load"))() end,
+        ["Intruders"]   = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/lifaiossama/errors/main/Intruders.html"))() end,
+        ["Itachi"]      = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/destylol/masterhubv311/itachi/Main.lua"))() end,
+    })
+
+    GameDropdown(GamesTab, "Anime Fighters Simulator", {"Banana Hub","Platinium Hub","SSJ3 Hub","Yuto Hub","Zer0 Hub"}, {
+        ["Banana Hub"]    = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/diepedyt/bui/main/temporynewkeysystem.lua"))() end,
+        ["Platinium Hub"] = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/ZaRdoOx/Loader/main/PlatiniumLoader"))() end,
+        ["SSJ3 Hub"]      = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Gohan9k/ANFSnew/main/GOHANSSJ3"))() end,
+        ["Yuto Hub"]      = function() repeat task.wait() until game:IsLoaded(); loadstring(game:HttpGet("https://raw.githubusercontent.com/Binintrozza/yutv2e/main/afss"))() end,
+        ["Zer0 Hub"]      = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Discord0000/Zer0Hub/main/MainScript.lua"))() end,
+    })
+
+    GameDropdown(GamesTab, "Anime Fighting Simulator X", {"Blox Hub","Muimi Hub","Project Nexus","Sky Hub"}, {
+        ["Blox Hub"]      = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/malicious-dev/RobloxScripting/main/AFSX.lua",true))() end,
+        ["Muimi Hub"]     = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bunnynwy/games/main/AnimeFightingX"))() end,
+        ["Project Nexus"] = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/IkkyyDF/ProjectNexus/main/Loader.lua"))() end,
+        ["Sky Hub"]       = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/SKOIXLL/RIVERHUB-SKYHUB/main/WL.lua"))() end,
+    })
+
+    GameDropdown(GamesTab, "Anime Warriors Simulator 2", {"JumbleScripts","Verny Hub V2"}, {
+        ["JumbleScripts"]  = function() loadstring(game:HttpGet("https://jumblescripts.com/AnimeWarriorsSimulator2.lua"))() end,
+        ["Verny Hub V2"]   = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/666dasdlolok/VernyHubV2/main/Main"))() end,
+    })
+
+    GameDropdown(GamesTab, "Arm Wrestler Simulator", {"Flame Hub","HarPy","Kenniel","LDS Hub","Linear Hub","Muimi Hub","Nebula Hub","Screech Hub","Skull Hub","Spirit Hub"}, {
+        ["Flame Hub"]   = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/1Toxin/flame/main/loader"))() end,
+        ["HarPy"]       = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/xShadow1234/HarPy/main/script.lua"))() end,
+        ["Kenniel"]     = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Kenniel123/Arm-Wrestle-Simulator-Script/main/Arm-Wrestle-Simulator-Script",true))() end,
+        ["LDS Hub"]     = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/limaspeedy/limaspeedy/main/HubLDS"))() end,
+        ["Linear Hub"]  = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/yoolovr/Linear-Hub/main/loader.lua"))() end,
+        ["Muimi Hub"]   = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/bunnynwy/games/main/main.lua"))() end,
+        ["Nebula Hub"]  = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Saitamahaah/SaitaHub/main/NebulaHub"))() end,
+        ["Screech Hub"] = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/1Toxin/screech/main/AWS"))() end,
+        ["Skull Hub"]   = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/zicus-scripts/SkullHub/main/Loader.lua"))() end,
+        ["Spirit Hub"]  = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/zicus-scripts/gay-scripts/main/Loader.lua"),true)() end,
+    })
+
+    GameDropdown(GamesTab, "Arsenal", {"AdvanceTechV3","Arsenal","DarkHub","Faded","F2b Hub","OwlHub","Tiger-Hub","V.Ghub"}, {
+        ["AdvanceTechV3"] = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/YellowGreg/UltimateCromaSin-Arsenal-Gui/main/AdvanceTechV3.lua"))() end,
+        ["Arsenal"]       = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Infinity2346/Tect-Menu/main/Arsenalscript.txt"))() end,
+        ["DarkHub"]       = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/RandomAdamYT/DarkHub/master/Init",true))() end,
+        ["Faded"]         = function() _G.Toggles="V"; loadstring(game:HttpGet("https://raw.githubusercontent.com/NighterEpic/Faded-Grid/main/YesEpic",true))() end,
+        ["F2b Hub"]       = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/F2B-HUB/F2B/main/HUB"))() end,
+        ["OwlHub"]        = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"))() end,
+        ["Tiger-Hub"]     = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/plutoguy/Tiger-Hub/main/loader.lua"))() end,
+        ["V.Ghub"]        = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/1201for/V.G-Hub/main/V.Ghub"))() end,
+    })
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  HUB | GUI TAB
+-- ══════════════════════════════════════════════════════════════
+do
+    local HubTab = HubGuiSection:Tab({
+        Title = "Hub | Gui",
+        Icon = "solar:widget-bold",
+        IconColor = Lavender,
+        IconShape = "Square",
+        Border = true,
+    })
+
+    -- Executor Section
+    local ExecSection = HubTab:Section({ Title = "Executor", Box = true, BoxBorder = true, Opened = true })
+
+    ExecSection:Input({
+        Title = "Script Executor",
+        Desc = "Execute Scripts",
+        Placeholder = "Enter script here...",
+        Type = "Textarea",
+        Callback = function(code)
+            pcall(loadstring(code))
+        end
+    })
+    ExecSection:Space()
+
+    local function execBtn(title, url)
+        ExecSection:Button({
+            Title = title,
+            Desc = "Credits to Owner",
+            Callback = function() loadstring(game:HttpGet(url))() end
+        })
+    end
+
+    execBtn("Arceus X v3", "https://raw.githubusercontent.com/AZYsGithub/chillz-workshop/main/Arceus%20X%20V3")
+    execBtn("Fluxus Coral", "https://scriptblox.com/raw/Universal-Script-Fluxus-Coral-Remake-7112")
+    execBtn("Delta Fan Made", "https://scriptblox.com/raw/Universal-Script-Delta-Executor-J-O-K-E-7664")
+    execBtn("Krnl Gui", "https://pastebin.com/raw/M3HjLPU7")
+    execBtn("Synapse X Gui", "https://raw.githubusercontent.com/AZYsGithub/Chillz-s-scripts/main/Synapse-X-Remake.lua")
+    execBtn("NotePad", "https://raw.githubusercontent.com/JustAScripts/Favorable/main/NotePad.lua")
+    execBtn("NoCom Executor", "https://raw.githubusercontent.com/YellowGreg/NoCom-Executor/main/NoCom")
+    execBtn("Shadow X Executor", "https://pastebin.com/raw/1fAnGAA0")
+    execBtn("Neptune Executor", "https://pastebin.com/raw/y3jhxS5r")
+    execBtn("Rc7 Executor", "https://gist.githubusercontent.com/jointeamck/40a11b97bfb6881a72dba218cce85e2a/raw/02ca8af7ef7904182abd4208064d9a22df0010b5/rc7")
+    execBtn("Serverside Executor Gui", "https://pastebin.com/raw/PXAdj6ED")
+
+    HubTab:Space()
+
+    -- Admin Section
+    local AdminSection = HubTab:Section({ Title = "Admin", Box = true, BoxBorder = true, Opened = true })
+    local function adminBtn(title, url)
+        AdminSection:Button({ Title = title, Desc = "Credits to Owner", Callback = function() loadstring(game:HttpGet(url))() end })
+    end
+
+    adminBtn("Infinite Yield", "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source")
+    adminBtn("Cmd-X", "https://raw.githubusercontent.com/CMD-X/CMD-X/master/Source")
+    adminBtn("Fates Admin", "https://raw.githubusercontent.com/fatesc/fates-admin/main/main.lua")
+    adminBtn("GrimEx Admin", "https://raw.githubusercontent.com/JoeScriptHub/GrimEx-Admin/main/GrimEx%20Admin")
+    adminBtn("Leg Admin v2", "https://raw.githubusercontent.com/leg1337/legadmv2/main/legadminv2.lua")
+    adminBtn("Reviz Admin", "https://pastebin.com/raw/Caniwq2N")
+    adminBtn("Vortex Admin", "https://pastebin.com/raw/UaTjPQMP")
+
+    HubTab:Space()
+
+    -- Universal Hub Section
+    local UnivSection = HubTab:Section({ Title = "Universal Hub", Box = true, BoxBorder = true, Opened = false })
+    local function univBtn(title, url)
+        UnivSection:Button({ Title = title, Desc = "Credits to Owner", Callback = function() loadstring(game:HttpGet(url))() end })
+    end
+
+    univBtn("HarshTech v7.6", "https://raw.githubusercontent.com/YellowGreg/Loadstring/main/HarshTechV7.6-Pc-Or-Mobile.lua")
+    univBtn("Multi Scripter X", "https://raw.githubusercontent.com/GamerScripter/Multi-Scripter-X/main/loader")
+    univBtn("Mocha Hub", "https://pastebin.com/raw/0MriWAjK")
+    univBtn("Fathom Hub", "https://pastebin.com/raw/Y4AGJALY")
+    univBtn("Gigachad Hub", "https://raw.githubusercontent.com/LolPrivate/Side/main/Gigachad%20Hub%20V7.lua")
+    univBtn("Astrolynx", "https://freenote.biz/raw/vBfN3NeVYN")
+    univBtn("Alysse", "https://raw.githubusercontent.com/NathTheDev/AlysseAndroid/main/loader.lua")
+    univBtn("GHub", "https://raw.githubusercontent.com/gclich/GHUBV13S/main/GHUBv13S.txt")
+
+    HubTab:Space()
+
+    -- Good Gui Scripts
+    local GoodGuiSection = HubTab:Section({ Title = "Good Gui Scripts", Box = true, BoxBorder = true, Opened = false })
+    local function guiBtn(title, url)
+        GoodGuiSection:Button({ Title = title, Desc = "Credits to Owner", Callback = function() loadstring(game:HttpGet(url))() end })
+    end
+
+    guiBtn("Acrylix v2.0", "https://raw.githubusercontent.com/HubbyScripts/FE-Trolling-Hub/main/source")
+    guiBtn("ADSKer Hub", "https://raw.githubusercontent.com/ADSKerOffical/ADSKerHub/main/ADSKExe")
+    guiBtn("Alex Universal", "https://raw.githubusercontent.com/AlexScripts1/AlexUniversalV4/main/Release")
+    guiBtn("All Tycoons v3", "https://freenote.biz/raw/SkG1nrBqE8")
+    guiBtn("Aloneo Hub", "https://raw.githubusercontent.com/YogaProjectRblx/AloneUniversal/main/README.md")
+    guiBtn("Artillary Hub", "https://raw.githubusercontent.com/LynchHHU/ArtilleryHub/main/GameHub/LynchYT")
+    guiBtn("Astral Hub", "https://raw.githubusercontent.com/Vcsk/AstralHub/main/Main.lua")
+    guiBtn("Auratus X", "https://raw.githubusercontent.com/RealMrQuacks/AuratusX/master/Load")
+    guiBtn("Autput", "https://raw.githubusercontent.com/ADSKerOffical/Autput/main/Autputus")
+    guiBtn("Butif Hub", "https://raw.githubusercontent.com/NEWBUTIF/Universal-Script-Hub/main/Butif%20Hub")
+    guiBtn("Cosmos Hub", "https://pastebin.com/raw/tFivBbmb")
+    guiBtn("Davi Hub v2.3", "https://raw.githubusercontent.com/Davicoderliner/davi-hub-V2.3/main/davi.lua")
+    guiBtn("Dynamic Hub", "https://pastebin.com/raw/bzySVjhX")
+    guiBtn("Eminence Hub", "https://pastebin.com/raw/PqGe7h3A")
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  FE TAB
+-- ══════════════════════════════════════════════════════════════
+do
+    local FeTab = FeSection:Tab({
+        Title = "Fe",
+        Icon = "solar:transfer-horizontal-bold",
+        IconColor = Pink,
+        IconShape = "Square",
+        Border = true,
+    })
+
+    -- Fe Gui
+    local FeGuiSection = FeTab:Section({ Title = "Fe Gui", Box = true, BoxBorder = true, Opened = true })
+    local function feGuiBtn(title, url)
+        FeGuiSection:Button({ Title = title, Desc = "Credits to Owner", Callback = function() loadstring(game:HttpGet(url))() end })
+    end
+
+    feGuiBtn("B4krs Chat Bypasser", "https://raw.githubusercontent.com/BakaPraselol/v4lsB4krscbR/main/Loadstring%20version%20chat%20bypasser")
+    feGuiBtn("Comet", "https://raw.githubusercontent.com/FilteringEnabled/FE/main/Comet")
+    feGuiBtn("Epix's Fe Gui", "https://pastebin.com/raw/jMAwjKcb")
+    feGuiBtn("Energize [R6]", "https://pastebin.com/raw/1p6xnBNf")
+    feGuiBtn("Fex", "https://pastebin.com/raw/ES6xMCn7")
+    feGuiBtn("Free Gamepasses Gui", "https://pastebin.com/raw/QtQ4YnVR")
+    feGuiBtn("Player Orbit", "https://raw.githubusercontent.com/0Ben1/fe./main/Orbit%20GUI")
+    feGuiBtn("Tool Giver", "https://pastebin.com/raw/Ctqjmtkv")
+    feGuiBtn("Troll GUI", "https://pastebin.com/raw/nwGzXh1V")
+    feGuiBtn("Trolling Gui", "https://pastefy.app/ic5m4aJG/raw")
+    feGuiBtn("Xuctry FE Gui", "https://pastebin.com/raw/Zz4YDvLb")
+
+    FeTab:Space()
+
+    -- Fe Scripts
+    local FeScriptSection = FeTab:Section({ Title = "Fe Scripts", Box = true, BoxBorder = true, Opened = true })
+    local function feBtn(title, url)
+        FeScriptSection:Button({ Title = title, Desc = "Credits to Owner", Callback = function() loadstring(game:HttpGet(url))() end })
+    end
+
+    feBtn("Fe Anti Afk", "https://raw.githubusercontent.com/Nadir3709/Huubb/main/Mobile%20Scripting")
+    feBtn("Fe Anti Fall", "https://raw.githubusercontent.com/zephyr10101/AntiFall/main/Script")
+    feBtn("Fe Chat Bypasser", "https://raw.githubusercontent.com/bedra45/chetbypasser/main/chetbypass")
+    feBtn("Fe Chat Executor", "https://raw.githubusercontent.com/zephyr10101/chat-executor/main/chat-executor")
+    feBtn("Fe Chat Hack", "https://pastebin.com/raw/MBpnp3yS")
+    feBtn("Fe Clone", "https://raw.githubusercontent.com/0Ben1/fe/main/obf_11l7Y131YqJjZ31QmV5L8pI23V02b3191sEg26E75472Wl78Vi8870jRv5txZyL1.lua.txt")
+    feBtn("Fe Collision", "https://raw.githubusercontent.com/0Ben1/fe/main/Collision.txt")
+    feBtn("Fe Control Npc", "https://pastefy.app/x8nWWq0M/raw")
+    feBtn("Fe Death Note", "https://pastefy.app/GoKxYBkU/raw")
+    feBtn("Fe Dino Fling", "https://raw.githubusercontent.com/0Ben1/fe/main/obf_K2n31uc6t2wY5A8786eR4K15sgbUF0vdQ80a0LzgvLRkSNYd89H1AS3124gMR6SM.lua.txt")
+    feBtn("Fe Fling", "https://pastebin.com/raw/r97d7dS0")
+    feBtn("Fe Fling Gui", "https://raw.githubusercontent.com/fgasfga/Fe-Fling-GUI-For-roblox/main/Main.lua")
+    feBtn("Fe Freeze", "https://raw.githubusercontent.com/creepstu/fuzzy-octo-giggle/main/Source")
+    feBtn("Fe Parts Mover", "https://pastefy.app/Vcuyg09O/raw")
+    feBtn("Fe Punch", "https://pastefy.ga/GvnHVjT5/raw")
+    feBtn("Fe R15 to R6", "https://raw.githubusercontent.com/Imagnir/r6_anims_for_r15/main/r6_anims.lua")
+    feBtn("Fe Roll Ball", "https://pastebin.com/raw/BZr9bGDy")
+    feBtn("Fe SCP 173", "https://raw.githubusercontent.com/0Ben1/fe/main/obf_nN0N66DHV2BjPwzYN59M17qSSlvJryM201CSC1sg07czxnZf48h9GHOFGd87G6Hh.lua.txt")
+    feBtn("Fe Spy", "https://raw.githubusercontent.com/GhostPlayer352/Test4/main/CCTV%20Camera")
+    feBtn("Fe Sword Kill All", "https://raw.githubusercontent.com/zephyr10101/sword-kill-all/main/script")
+    feBtn("Fe Touch Fling", "https://raw.githubusercontent.com/0Ben1/fe/main/obf_5wpM7bBcOPspmX7lQ3m75SrYNWqxZ858ai3tJdEAId6jSI05IOUB224FQ0VSAswH.lua.txt")
+    feBtn("Fe Tp Place Gui", "https://raw.githubusercontent.com/0Ben1/fe/main/Tp%20Place%20GUI")
+    feBtn("FE Yeet", "https://pastebin.com/raw/saMtiek2")
+    feBtn("Fe Zero Gravity Parts", "https://pastebin.com/raw/aXgyQyKY")
+    feBtn("Fe Zombie Fling", "https://pastefy.app/w7KnPY70/raw")
+
+    FeTab:Space()
+
+    -- Useful
+    local UsefulSection = FeTab:Section({ Title = "Useful", Box = true, BoxBorder = true, Opened = true })
+    UsefulSection:Button({ Title = "Animation Gui", Desc = "FE animation hub", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/GamingScripter/Animation-Hub/main/Animation%20Gui",true))() end })
+    UsefulSection:Button({ Title = "Emotes Gui | Best", Desc = "FE emotes hub", Callback = function() loadstring(game:HttpGetAsync("https://gist.githubusercontent.com/RedZenXYZ/3da6af1961efa275de6c3c2a6dbace03/raw/bb027f99cec0ea48ef9c5eabfb9116ddff20633d/FE%2520Emotes%2520Gui"))() end })
+    UsefulSection:Button({ Title = "Emotes Gui Alt", Callback = function() loadstring(game:HttpGet("https://pastebin.com/raw/fitjHU5J"))() end })
+
+    FeTab:Space()
+
+    -- Not Sure Fe
+    local NotSureSection = FeTab:Section({ Title = "Not Sure Fe", Box = true, BoxBorder = true, Opened = false })
+    local function nsBtn(title, url)
+        NotSureSection:Button({ Title = title, Desc = "Credits to Owner", Callback = function() loadstring(game:HttpGet(url))() end })
+    end
+
+    nsBtn("Among Us", "https://pastebin.com/raw/vNiNzr34")
+    nsBtn("Backflip", "https://pastebin.com/raw/n2gUwjc4")
+    nsBtn("Bloody Knife", "https://pastebin.com/raw/25P2tVPD")
+    nsBtn("Coolkid Gui", "https://pastebin.com/raw/YsVaUfYQ")
+    nsBtn("Gale Fighter", "https://pastebin.com/raw/YCH5P19e")
+    nsBtn("Psychopath", "https://pastebin.com/raw/9Lharw50")
+    nsBtn("Slasher", "https://pastebin.com/raw/sVEn1Tza")
+    nsBtn("Snake", "https://pastebin.com/raw/naRUdxrc")
+    nsBtn("Spider", "https://pastebin.com/raw/txsk1LJg")
+
+    FeTab:Space()
+
+    -- Sus Scripts
+    local SusSection = FeTab:Section({ Title = "Sus Scripts", Box = true, BoxBorder = true, Opened = false })
+    SusSection:Button({ Title = "Pendulum Hub", Desc = "Credits to Owner", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Tescalus/Pendulum-Hubs-Source/main/Pendulum%20Hub%20V5.lua"))() end })
+    SusSection:Button({ Title = "Sussy Hub", Desc = "Credits to Owner", Callback = function() loadstring(game:HttpGet("https://gist.githubusercontent.com/Nilrogram/8b0c8bd710be142f383c71f79279752c/raw/e4fb01a7de7cd498bb53270d2ad191dfab268a88/FE%2520SussyHub"))() end })
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  OTHER TAB
+-- ══════════════════════════════════════════════════════════════
+do
+    local OtherTab = OtherSection:Tab({
+        Title = "Other",
+        Icon = "solar:stars-bold",
+        IconColor = Green,
+        IconShape = "Square",
+        Border = true,
+    })
+
+    -- Player Controls Section
+    local PlayerSection = OtherTab:Section({ Title = "Player", Box = true, BoxBorder = true, Opened = true })
+
+    local WalkSpeed = 16
+    local JumpPower = 50
+    local LoopWS = false
+    local LoopJP = false
+
+    PlayerSection:Input({
+        Title = "Walk Speed",
+        Desc = "Set Walk Speed",
+        Placeholder = "e.g. 16",
+        Type = "Input",
+        Callback = function(v)
+            local n = tonumber(v)
+            if n then
+                WalkSpeed = n
+                pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = n end)
+            end
+        end
+    })
+
+    PlayerSection:Toggle({
+        Title = "Loop Walk Speed",
+        Desc = "Persists on respawn",
+        Value = false,
+        Callback = function(state)
+            LoopWS = state
+            if state then
+                RunService.Heartbeat:Connect(function()
+                    if LoopWS then
+                        pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = WalkSpeed end)
+                    end
+                end)
+            end
+        end
+    })
+
+    PlayerSection:Space()
+
+    PlayerSection:Input({
+        Title = "Jump Power",
+        Desc = "Set Jump Power",
+        Placeholder = "e.g. 50",
+        Type = "Input",
+        Callback = function(v)
+            local n = tonumber(v)
+            if n then
+                JumpPower = n
+                pcall(function() LocalPlayer.Character.Humanoid.JumpPower = n end)
+            end
+        end
+    })
+
+    PlayerSection:Toggle({
+        Title = "Loop Jump Power",
+        Desc = "Persists on respawn",
+        Value = false,
+        Callback = function(state)
+            LoopJP = state
+            if state then
+                RunService.Heartbeat:Connect(function()
+                    if LoopJP then
+                        pcall(function() LocalPlayer.Character.Humanoid.JumpPower = JumpPower end)
+                    end
+                end)
+            end
+        end
+    })
+
+    PlayerSection:Space()
+
+    PlayerSection:Input({
+        Title = "Gravity",
+        Desc = "Set Gravity (default 196.2)",
+        Placeholder = "e.g. 196.2",
+        Callback = function(v)
+            local n = tonumber(v)
+            if n then game.Workspace.Gravity = n end
+        end
+    })
+
+    PlayerSection:Input({
+        Title = "Zoom Distance",
+        Desc = "Max camera zoom",
+        Placeholder = "e.g. 200",
+        Callback = function(v)
+            local n = tonumber(v)
+            if n then LocalPlayer.CameraMaxZoomDistance = n end
+        end
+    })
+
+    PlayerSection:Button({
+        Title = "Endless Zoom",
+        Desc = "Zoom infinitely far",
+        Callback = function()
+            LocalPlayer.CameraMaxZoomDistance = 1e30
+            LocalPlayer.CameraMinZoomDistance = 0
+        end
+    })
+
+    PlayerSection:Button({
+        Title = "Reset Stats",
+        Desc = "Restore defaults",
+        Callback = function()
+            pcall(function()
+                LocalPlayer.Character.Humanoid.WalkSpeed = 16
+                LocalPlayer.Character.Humanoid.JumpPower = 50
+                game.Workspace.Gravity = 196.2
+                LocalPlayer.CameraMaxZoomDistance = 200
+                WalkSpeed = 16
+                JumpPower = 50
+            end)
+        end
+    })
+
+    PlayerSection:Space()
+
+    PlayerSection:Toggle({
+        Title = "Infinite Jump",
+        Desc = "Jump without landing",
+        Value = false,
+        Callback = function(state)
+            getgenv().InfiniteJumpEnabled = state
+            UserInputService.JumpRequest:connect(function()
+                if getgenv().InfiniteJumpEnabled then
+                    pcall(function()
+                        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+                    end)
+                end
+            end)
+        end
+    })
+
+    PlayerSection:Toggle({
+        Title = "Auto Jump",
+        Desc = "Jump automatically",
+        Value = false,
+        Callback = function(state)
+            getgenv().AutoJumpEnabled = state
+            task.spawn(function()
+                while task.wait(0.1) do
+                    if not getgenv().AutoJumpEnabled then break end
+                    pcall(function() LocalPlayer.Character:WaitForChild("Humanoid").Jump = true end)
+                end
+            end)
+        end
+    })
+
+    PlayerSection:Toggle({
+        Title = "Wide FOV",
+        Desc = "Set FOV to 120",
+        Value = false,
+        Callback = function(state)
+            game.Workspace.CurrentCamera.FieldOfView = state and 120 or 70
+        end
+    })
+
+    PlayerSection:Toggle({
+        Title = "Noclip [Beta]",
+        Desc = "Walk through walls",
+        Value = false,
+        Callback = function(state)
+            getgenv().NoclipEnabled = state
+            RunService.Stepped:connect(function()
+                if getgenv().NoclipEnabled then
+                    pcall(function()
+                        for _, part in pairs((LocalPlayer.Character or {LocalPlayer.CharacterAdded:Wait()}):GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
+                            end
+                        end
+                    end)
+                end
+            end)
+        end
+    })
+
+    PlayerSection:Button({ Title = "Reset Character", Desc = "Kill yourself to reset", Callback = function()
+        pcall(function() LocalPlayer.Character.Humanoid.Health = 0 end)
+    end })
+
+    PlayerSection:Button({ Title = "No Clip | Press E", Desc = "Mobile-friendly noclip", Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/No%20Clip"))()
+    end })
+
+    PlayerSection:Button({ Title = "Shift Lock", Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/Shiftlock"))()
+    end })
+
+    PlayerSection:Button({ Title = "Fly | PC", Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/zachisfunny/Fly-Script/main/Script"))()
+    end })
+
+    PlayerSection:Button({ Title = "FPS Booster", Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/FpsBooster"))()
+    end })
+
+    PlayerSection:Button({ Title = "Anti AFK", Callback = function()
+        loadstring(game:HttpGet("https://scriptblox.com/raw/Universal-Script-Anti-Afk-Remastered-Script-or-Diffrent-Cool-UI-2097"))()
+    end })
+
+    PlayerSection:Button({ Title = "Anti Fling", Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/Anti%20Fling",true))()
+    end })
+
+    PlayerSection:Button({ Title = "Guardian (Protector)", Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/GalacticHypernova/Guardian/main/Main"))()
+    end })
+
+    OtherTab:Space()
+
+    -- Guis Section
+    local GuisSection = OtherTab:Section({ Title = "Guis", Box = true, BoxBorder = true, Opened = false })
+    local function guiTabBtn(title, url)
+        GuisSection:Button({ Title = title, Callback = function() loadstring(game:HttpGet(url))() end })
+    end
+
+    guiTabBtn("Walk Speed Gui", "https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/Walk-Speed-Gui")
+    guiTabBtn("Jump Power Gui", "https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/Jump-Power-Gui")
+    guiTabBtn("Gravity Gui", "https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/Gravity-Gui")
+    guiTabBtn("Ping Counter", "https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/Ping")
+    guiTabBtn("FPS Counter", "https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/Fps")
+
+    OtherTab:Space()
+
+    -- Teleporter Section
+    local TpSection = OtherTab:Section({ Title = "Teleport", Box = true, BoxBorder = true, Opened = false })
+    TpSection:Button({ Title = "TweenTeleporter", Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Bac0nHck/Scripts/main/TweenTeleporter"))()
+    end })
+    TpSection:Button({ Title = "Unanchored To Player Gui", Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/WkZwcGjf",true))()
+        RunService.RenderStepped:Connect(function()
+            pcall(function() sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge) end)
+        end)
+    end })
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  SETTINGS TAB
+-- ══════════════════════════════════════════════════════════════
+do
+    local SettingsTab = SettingsSection:Tab({
+        Title = "Settings",
+        Icon = "solar:settings-bold",
+        IconColor = Grey,
+        IconShape = "Square",
+        Border = true,
+    })
+
+    -- Watermark
+    local WMSection = SettingsTab:Section({ Title = "Watermark", Box = true, BoxBorder = true, Opened = true })
+    WMSection:Toggle({
+        Title = "Show Watermark",
+        Value = true,
+        Callback = function(state)
+            WatermarkGui.Enabled = state
+        end
+    })
+
+    SettingsTab:Space()
+
+    -- UI Scale
+    local UISection = SettingsTab:Section({ Title = "UI Settings", Box = true, BoxBorder = true, Opened = true })
+    UISection:Slider({
+        Title = "UI Scale",
+        Desc = "Adjust window size",
+        Step = 0.05,
+        Value = { Min = 0.5, Max = 1.5, Default = 1.0 },
+        Callback = function(v)
+            Window:SetUIScale(v)
+        end
+    })
+
+    UISection:Toggle({
+        Title = "Hide Panel Background",
+        Value = false,
+        Callback = function(state)
+            Window:SetPanelBackground(not state)
+        end
+    })
+
+    SettingsTab:Space()
+
+    -- Keybind
+    local KeySection = SettingsTab:Section({ Title = "Keybind", Box = true, BoxBorder = true, Opened = true })
+    KeySection:Keybind({
+        Flag = "ToggleKeybind",
+        Title = "Toggle UI",
+        Desc = "Key to open/close the window",
+        Value = "RightShift",
+        Callback = function(v)
+            pcall(function()
+                Window:SetToggleKey(Enum.KeyCode[v])
+            end)
+        end
+    })
+
+    SettingsTab:Space()
+
+    -- Other Settings
+    local OtherSetSection = SettingsTab:Section({ Title = "Other", Box = true, BoxBorder = true, Opened = true })
+    OtherSetSection:Button({ Title = "Feedback", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/Feedback"))() end })
+    OtherSetSection:Button({ Title = "Suggestion", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/Suggestion"))() end })
+    OtherSetSection:Button({ Title = "Bug Report", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/GamerScripter/Game-Hub/main/Bug-Report"))() end })
+
+    SettingsTab:Space()
+
+    -- Destroy
+    local DestroySection = SettingsTab:Section({ Title = "Destroy", Box = true, BoxBorder = true, Opened = true })
+    DestroySection:Button({
+        Title = "Destroy Script",
+        Color = Red,
+        Icon = "shredder",
+        IconAlign = "Left",
+        Justify = "Center",
+        Callback = function()
+            Window:Destroy()
+            WatermarkGui:Destroy()
+        end
+    })
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  SHOWCASER TAB
+-- ══════════════════════════════════════════════════════════════
+do
+    local ShowcaserTab = ShowcaserSection:Tab({
+        Title = "Showcaser",
+        Icon = "solar:play-circle-bold",
+        IconColor = Cyan,
+        IconShape = "Square",
+        Border = true,
+    })
+
+    local ShowcasersSection = ShowcaserTab:Section({ Title = "Showcasers — Click to copy YouTube link", Box = true, BoxBorder = true, Opened = true })
+
+    local showcasers = {
+        {"Showcase Other Games To Be In This History!", "https://youtube.com/@yourname"},
+    }
+
+    for _, v in ipairs(showcasers) do
+        local name, url = v[1], v[2]
+        ShowcasersSection:Button({
+            Title = name,
+            Desc = url,
+            Callback = function()
+                pcall(function() setclipboard(url) end)
+                WindUI:Notify({
+                    Title = "Copied!",
+                    Content = name .. "'s channel link copied.",
+                    Icon = "link",
+                    Duration = 2,
+                })
+            end
+        })
+    end
+
+    ShowcaserTab:Space()
+    ShowcaserTab:Section({
+        Title = "If you already showcased this script and you're not here, comment on Ternals Latest Posted ScriptOn Scriptblox",
+        TextSize = 13,
+        TextTransparency = 0.35,
+    })
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  CREDITS TAB
+-- ══════════════════════════════════════════════════════════════
+do
+    local CreditsTab = CreditsSection:Tab({
+        Title = "Credits",
+        Icon = "solar:star-bold",
+        IconColor = Violet,
+        IconShape = "Square",
+        Border = true,
+    })
+
+    CreditsTab:Section({
+        Title = "✦ Externality Made In Heaven",
+        TextSize = 22,
+        FontWeight = Enum.FontWeight.Bold,
+    })
+
+    CreditsTab:Space()
+
+    CreditsTab:Section({
+        Title = "Externallity -- Footages UI LIBARY",
+        TextSize = 15,
+        TextTransparency = 0.3,
+    })
+
+    CreditsTab:Space()
+
+    CreditsTab:Button({
+        Title = "YouTube Channel",
+        Icon = "youtube",
+        Color = Color3.fromHex("#FF0000"),
+        IconAlign = "Left",
+        Justify = "Center",
+        Callback = function()
+            pcall(function() setclipboard("https://www.youtube.com/@0GBNeeded") end)
+            WindUI:Notify({
+                Title = "✦ Copied",
+                Content = "YouTube channel link copied!",
+                Icon = "youtube",
+                Duration = 2,
+            })
+        end
+    })
+
+    CreditsTab:Space()
+
+    CreditsTab:Button({
+        Title = "Discord Server",
+        Icon = "message-circle",
+        Color = Color3.fromHex("#5865F2"),
+        IconAlign = "Left",
+        Justify = "Center",
+        Callback = function()
+            pcall(function() setclipboard("Gonna Build A Server Soon :)") end)
+            WindUI:Notify({
+                Title = "✦ Copied",
+                Content = "Discord invite copied!",
+                Icon = "message-circle",
+                Duration = 2,
+            })
+        end
+    })
+
+    CreditsTab:Space()
+
+    CreditsTab:Section({
+        Title = "Crafted with ♥ by the Externality Team",
+        TextSize = 14,
+        TextTransparency = 0.4,
+    })
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  UPDATE LOG TAB
+-- ══════════════════════════════════════════════════════════════
+do
+    local UpdateTab = UpdateLogSection:Tab({
+        Title = "Update Log",
+        Icon = "solar:document-text-bold",
+        IconColor = Lavender,
+        IconShape = "Square",
+        Border = true,
+    })
+
+    UpdateTab:Section({ Title = "What's New — v6.0 · WindUI · Violet Abyss", TextSize = 18, FontWeight = Enum.FontWeight.SemiBold })
+    UpdateTab:Space()
+
+    local updates = {
+        "No Updates Yet To Our Gamez",
+    }
+
+    local UpdatesSection = UpdateTab:Section({ Title = "Changelog", Box = true, BoxBorder = true, Opened = true })
+    for _, line in ipairs(updates) do
+        UpdatesSection:Section({
+            Title = line,
+            TextSize = 13,
+            TextTransparency = line:sub(1,3) == "[-]" and 0.5 or 0.2,
+        })
+    end
+end
+
+
+-- ══════════════════════════════════════════════════════════════
+-- ✦  INIT NOTIFICATION
+-- ══════════════════════════════════════════════════════════════
+task.delay(3.5, function()
+    WindUI:Notify({
+        Title = "✦ Externality Made In Heaven",
+        Content = "*Reboots Universal Option* Couldn't Detect The Game.",
+        Icon = "solar:planet-bold-duotone",
+        Duration = 5,
+    })
+end)
