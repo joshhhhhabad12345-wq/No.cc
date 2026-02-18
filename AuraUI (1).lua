@@ -1601,7 +1601,6 @@ end
 -- ═══════════════════════════════════════════════
 --          ✦  DEMO / EXAMPLE USAGE  ✦
 -- ═══════════════════════════════════════════════
---[[
 
 local UI = AuraUI.new()
 
@@ -1766,7 +1765,5 @@ Actions:CreateInput({
 		print("Input:", val)
 	end,
 })
-
---]]
 
 return AuraUI
