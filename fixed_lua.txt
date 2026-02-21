@@ -1,0 +1,3393 @@
+-- ts file was generated at discord.gg/25ms
+
+local _Players = game:GetService('Players')
+local _UserInputService = game:GetService('UserInputService')
+local _TweenService = game:GetService('TweenService')
+local _RunService = game:GetService('RunService')
+local _Debris = game:GetService('Debris')
+local _ReplicatedStorage = game:GetService('ReplicatedStorage')
+local _StatesController = require(_ReplicatedStorage.Packages.Knit).GetController('StatesController')
+local _LocalPlayer = _Players.LocalPlayer
+local u9 = _LocalPlayer.Character or _LocalPlayer.CharacterAdded:Wait()
+local _Humanoid = u9:WaitForChild('Humanoid')
+local _HumanoidRootPart = u9:WaitForChild('HumanoidRootPart')
+local _CurrentCamera = workspace.CurrentCamera
+local u13 = 'Nelrinv2upd'
+local u14 = true -- bypassed key check so abilities load directly
+local u15 = 'nelrin.txt'
+
+local function u17(p16)
+    writefile(u15, p16)
+end
+local function v18()
+    if isfile(u15) then
+        return readfile(u15)
+    else
+        return nil
+    end
+end
+local function v19()
+    if isfile(u15) then
+        delfile(u15)
+    end
+end
+
+local _ScreenGui = Instance.new('ScreenGui')
+
+_ScreenGui.Name = 'LoadingGui'
+_ScreenGui.Parent = _LocalPlayer.PlayerGui
+_ScreenGui.Enabled = false
+
+local _Frame = Instance.new('Frame')
+
+_Frame.Size = UDim2.new(0, 200, 0, 200)
+_Frame.Position = UDim2.new(0.5, -100, 0.5, -100)
+_Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+_Frame.BackgroundTransparency = 0.2
+_Frame.Parent = _ScreenGui
+
+local _UICorner = Instance.new('UICorner')
+
+_UICorner.CornerRadius = UDim.new(0, 15)
+_UICorner.Parent = _Frame
+
+local _Frame2 = Instance.new('Frame')
+
+_Frame2.Size = UDim2.new(0, 80, 0, 80)
+_Frame2.Position = UDim2.new(0.5, -40, 0.5, -60)
+_Frame2.BackgroundColor3 = Color3.fromRGB(0, 242, 255)
+_Frame2.Parent = _Frame
+
+local _UICorner2 = Instance.new('UICorner')
+
+_UICorner2.CornerRadius = UDim.new(1, 0)
+_UICorner2.Parent = _Frame2
+
+local _Frame3 = Instance.new('Frame')
+
+_Frame3.Size = UDim2.new(0, 40, 0, 40)
+_Frame3.Position = UDim2.new(0.5, -20, 0.5, -20)
+_Frame3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+_Frame3.Parent = _Frame2
+
+local _UICorner3 = Instance.new('UICorner')
+
+_UICorner3.CornerRadius = UDim.new(1, 0)
+_UICorner3.Parent = _Frame3
+
+local _TextLabel = Instance.new('TextLabel')
+
+_TextLabel.Size = UDim2.new(1, 0, 0, 30)
+_TextLabel.Position = UDim2.new(0, 0, 1, -40)
+_TextLabel.Text = 'Loading...'
+_TextLabel.TextColor3 = Color3.fromRGB(0, 242, 255)
+_TextLabel.BackgroundTransparency = 1
+_TextLabel.Font = Enum.Font.GothamBold
+_TextLabel.TextSize = 24
+_TextLabel.Parent = _Frame
+
+local u28 = _TweenService:Create(_Frame2, TweenInfo.new(1.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {Rotation = 360})
+local u29 = _TweenService:Create(_Frame3, TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {
+    Rotation = -360,
+})
+
+local function u31()
+    local v30 = 0
+
+    while _ScreenGui.Enabled do
+        _TextLabel.Text = 'Loading' .. string.rep('.', v30)
+        v30 = (v30 + 1) % 4
+
+        task.wait(0.5)
+    end
+end
+
+local v32 = v18()
+local v33 = false
+
+if v32 then
+    if v32 == u13 then
+        u14 = true
+    else
+        v19()
+
+        v33 = true
+    end
+end
+
+local u34
+
+if u14 then
+    u34 = _ScreenGui
+else
+    local _ScreenGui2 = Instance.new('ScreenGui')
+
+    _ScreenGui2.Parent = _LocalPlayer.PlayerGui
+    _ScreenGui2.IgnoreGuiInset = true
+
+    local _Frame4 = Instance.new('Frame')
+
+    _Frame4.Size = UDim2.new(0, 300, 0, 230)
+    _Frame4.Position = UDim2.new(0.5, -150, 0.5, -115)
+    _Frame4.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    _Frame4.BackgroundTransparency = 0.05
+    _Frame4.BorderSizePixel = 0
+    _Frame4.Parent = _ScreenGui2
+
+    local _UIGradient = Instance.new('UIGradient')
+
+    _UIGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50)),
+    })
+    _UIGradient.Rotation = 45
+    _UIGradient.Parent = _Frame4
+
+    local _UICorner4 = Instance.new('UICorner')
+
+    _UICorner4.CornerRadius = UDim.new(0, 15)
+    _UICorner4.Parent = _Frame4
+
+    local _UIStroke = Instance.new('UIStroke')
+
+    _UIStroke.Thickness = 2
+    _UIStroke.Color = Color3.fromRGB(0, 242, 255)
+    _UIStroke.Transparency = 0.3
+    _UIStroke.Parent = _Frame4
+
+    local _TextLabel2 = Instance.new('TextLabel')
+
+    _TextLabel2.Size = UDim2.new(1, 0, 0, 30)
+    _TextLabel2.Position = UDim2.new(0, 0, 0, 40)
+    _TextLabel2.Text = 'Rin System'
+    _TextLabel2.TextColor3 = Color3.fromRGB(0, 242, 255)
+    _TextLabel2.BackgroundTransparency = 1
+    _TextLabel2.Font = Enum.Font.GothamBlack
+    _TextLabel2.TextSize = 24
+    _TextLabel2.TextStrokeTransparency = 0.7
+    _TextLabel2.Parent = _Frame4
+
+    local _TextLabel3 = Instance.new('TextLabel')
+
+    _TextLabel3.Size = UDim2.new(1, 0, 0, 20)
+    _TextLabel3.Position = UDim2.new(0, 0, 0, 70)
+    _TextLabel3.Text = v33 and 'Your saved key is outdated. Please get the latest key.' or 'Enter the key to unlock Rin Itoshi'
+    _TextLabel3.TextColor3 = Color3.fromRGB(0, 242, 255)
+    _TextLabel3.BackgroundTransparency = 1
+    _TextLabel3.Font = Enum.Font.Gotham
+    _TextLabel3.TextSize = 14
+    _TextLabel3.Parent = _Frame4
+
+    local _TextBox = Instance.new('TextBox')
+
+    _TextBox.Size = UDim2.new(0.85, 0, 0, 40)
+    _TextBox.Position = UDim2.new(0.075, 0, 0, 110)
+    _TextBox.PlaceholderText = 'Enter Key Here'
+    _TextBox.Text = ''
+    _TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    _TextBox.Font = Enum.Font.GothamSemibold
+    _TextBox.TextSize = 16
+    _TextBox.Parent = _Frame4
+
+    local _UICorner5 = Instance.new('UICorner')
+
+    _UICorner5.CornerRadius = UDim.new(0, 10)
+    _UICorner5.Parent = _TextBox
+
+    local _UIStroke2 = Instance.new('UIStroke')
+
+    _UIStroke2.Thickness = 1
+    _UIStroke2.Color = Color3.fromRGB(0, 242, 255)
+    _UIStroke2.Parent = _TextBox
+
+    local _TextLabel4 = Instance.new('TextLabel')
+
+    _TextLabel4.Size = UDim2.new(0.85, 0, 0, 20)
+    _TextLabel4.Position = UDim2.new(0.075, 0, 0, 150)
+    _TextLabel4.Text = ''
+    _TextLabel4.TextColor3 = Color3.fromRGB(255, 0, 0)
+    _TextLabel4.BackgroundTransparency = 1
+    _TextLabel4.Font = Enum.Font.Gotham
+    _TextLabel4.TextSize = 12
+    _TextLabel4.Parent = _Frame4
+    _TextLabel4.Visible = false
+
+    local _TextButton = Instance.new('TextButton')
+
+    _TextButton.Size = UDim2.new(0.4, 0, 0, 30)
+    _TextButton.Position = UDim2.new(0.075, 0, 0, 180)
+    _TextButton.Text = 'Verify Key'
+    _TextButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    _TextButton.Font = Enum.Font.GothamBold
+    _TextButton.TextSize = 14
+    _TextButton.Parent = _Frame4
+
+    local _UICorner6 = Instance.new('UICorner')
+
+    _UICorner6.CornerRadius = UDim.new(0, 8)
+    _UICorner6.Parent = _TextButton
+
+    local _TextButton2 = Instance.new('TextButton')
+
+    _TextButton2.Size = UDim2.new(0.4, 0, 0, 30)
+    _TextButton2.Position = UDim2.new(0.525, 0, 0, 180)
+    _TextButton2.Text = 'Get Key'
+    _TextButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextButton2.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
+    _TextButton2.Font = Enum.Font.GothamBold
+    _TextButton2.TextSize = 14
+    _TextButton2.Parent = _Frame4
+
+    local _UICorner7 = Instance.new('UICorner')
+
+    _UICorner7.CornerRadius = UDim.new(0, 8)
+    _UICorner7.Parent = _TextButton2
+
+    local _TextButton3 = Instance.new('TextButton')
+
+    _TextButton3.Size = UDim2.new(0, 120, 0, 30)
+    _TextButton3.Position = UDim2.new(0.5, -60, 0, 5)
+    _TextButton3.Text = 'Need Support?'
+    _TextButton3.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextButton3.BackgroundColor3 = Color3.fromRGB(0, 0, 255)
+    _TextButton3.Font = Enum.Font.GothamBold
+    _TextButton3.TextSize = 14
+    _TextButton3.Parent = _Frame4
+
+    local _UICorner8 = Instance.new('UICorner')
+
+    _UICorner8.CornerRadius = UDim.new(0, 5)
+    _UICorner8.Parent = _TextButton3
+
+    local _UIStroke3 = Instance.new('UIStroke')
+
+    _UIStroke3.Thickness = 2
+    _UIStroke3.Color = Color3.fromRGB(0, 242, 255)
+    _UIStroke3.Transparency = 0.5
+    _UIStroke3.Parent = _TextButton3
+
+    local _TextButton4 = Instance.new('TextButton')
+
+    _TextButton4.Size = UDim2.new(0, 35, 0, 35)
+    _TextButton4.Position = UDim2.new(1, -45, 0, 10)
+    _TextButton4.Text = 'X'
+    _TextButton4.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextButton4.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    _TextButton4.Font = Enum.Font.GothamBold
+    _TextButton4.TextSize = 18
+    _TextButton4.Parent = _Frame4
+
+    local _UICorner9 = Instance.new('UICorner')
+
+    _UICorner9.CornerRadius = UDim.new(0, 10)
+    _UICorner9.Parent = _TextButton4
+
+    local _Frame5 = Instance.new('Frame')
+
+    _Frame5.Size = UDim2.new(0, 300, 0, 200)
+    _Frame5.Position = UDim2.new(0.5, -150, 0.5, -100)
+    _Frame5.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    _Frame5.BackgroundTransparency = 0.05
+    _Frame5.BorderSizePixel = 0
+    _Frame5.Parent = _ScreenGui2
+    _Frame5.Visible = false
+
+    local _UIGradient2 = Instance.new('UIGradient')
+
+    _UIGradient2.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50)),
+    })
+    _UIGradient2.Rotation = 45
+    _UIGradient2.Parent = _Frame5
+
+    local _UICorner10 = Instance.new('UICorner')
+
+    _UICorner10.CornerRadius = UDim.new(0, 15)
+    _UICorner10.Parent = _Frame5
+
+    local _UIStroke4 = Instance.new('UIStroke')
+
+    _UIStroke4.Thickness = 2
+    _UIStroke4.Color = Color3.fromRGB(0, 242, 255)
+    _UIStroke4.Transparency = 0.3
+    _UIStroke4.Parent = _Frame5
+
+    local _TextLabel5 = Instance.new('TextLabel')
+
+    _TextLabel5.Size = UDim2.new(1, 0, 0, 30)
+    _TextLabel5.Position = UDim2.new(0, 0, 0, 10)
+    _TextLabel5.Text = 'Get Key'
+    _TextLabel5.TextColor3 = Color3.fromRGB(0, 242, 255)
+    _TextLabel5.BackgroundTransparency = 1
+    _TextLabel5.Font = Enum.Font.GothamBlack
+    _TextLabel5.TextSize = 24
+    _TextLabel5.TextStrokeTransparency = 0.7
+    _TextLabel5.Parent = _Frame5
+
+    local _TextButton5 = Instance.new('TextButton')
+
+    _TextButton5.Size = UDim2.new(0.25, 0, 0, 40)
+    _TextButton5.Position = UDim2.new(0.05, 0, 0, 80)
+    _TextButton5.Text = 'Work Ink'
+    _TextButton5.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextButton5.BackgroundColor3 = Color3.fromRGB(0, 242, 255)
+    _TextButton5.Font = Enum.Font.GothamBold
+    _TextButton5.TextSize = 14
+    _TextButton5.Parent = _Frame5
+
+    local _UICorner11 = Instance.new('UICorner')
+
+    _UICorner11.CornerRadius = UDim.new(0, 8)
+    _UICorner11.Parent = _TextButton5
+
+    local _TextButton6 = Instance.new('TextButton')
+
+    _TextButton6.Size = UDim2.new(0.25, 0, 0, 40)
+    _TextButton6.Position = UDim2.new(0.375, 0, 0, 80)
+    _TextButton6.Text = 'Linkvertise'
+    _TextButton6.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextButton6.BackgroundColor3 = Color3.fromRGB(0, 242, 255)
+    _TextButton6.Font = Enum.Font.GothamBold
+    _TextButton6.TextSize = 14
+    _TextButton6.Parent = _Frame5
+
+    local _UICorner12 = Instance.new('UICorner')
+
+    _UICorner12.CornerRadius = UDim.new(0, 8)
+    _UICorner12.Parent = _TextButton6
+
+    local _TextButton7 = Instance.new('TextButton')
+
+    _TextButton7.Size = UDim2.new(0.25, 0, 0, 40)
+    _TextButton7.Position = UDim2.new(0.375, 0, 0, 130)
+    _TextButton7.Text = 'Discord'
+    _TextButton7.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextButton7.BackgroundColor3 = Color3.fromRGB(128, 0, 128)
+    _TextButton7.Font = Enum.Font.GothamBold
+    _TextButton7.TextSize = 14
+    _TextButton7.Parent = _Frame5
+
+    local _UICorner13 = Instance.new('UICorner')
+
+    _UICorner13.CornerRadius = UDim.new(0, 8)
+    _UICorner13.Parent = _TextButton7
+
+    local _TextButton8 = Instance.new('TextButton')
+
+    _TextButton8.Size = UDim2.new(0.25, 0, 0, 40)
+    _TextButton8.Position = UDim2.new(0.7, 0, 0, 80)
+    _TextButton8.Text = 'AdFocus'
+    _TextButton8.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextButton8.BackgroundColor3 = Color3.fromRGB(0, 242, 255)
+    _TextButton8.Font = Enum.Font.GothamBold
+    _TextButton8.TextSize = 14
+    _TextButton8.Parent = _Frame5
+
+    local _UICorner14 = Instance.new('UICorner')
+
+    _UICorner14.CornerRadius = UDim.new(0, 8)
+    _UICorner14.Parent = _TextButton8
+
+    local _TextButton9 = Instance.new('TextButton')
+
+    _TextButton9.Size = UDim2.new(0.4, 0, 0, 30)
+    _TextButton9.Position = UDim2.new(0.3, 0, 0, 160)
+    _TextButton9.Text = 'Back'
+    _TextButton9.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextButton9.BackgroundColor3 = Color3.fromRGB(0, 242, 255)
+    _TextButton9.Font = Enum.Font.GothamBold
+    _TextButton9.TextSize = 14
+    _TextButton9.Parent = _Frame5
+
+    local _UICorner15 = Instance.new('UICorner')
+
+    _UICorner15.CornerRadius = UDim.new(0, 8)
+    _UICorner15.Parent = _TextButton9
+
+    local function v82(p70)
+        local u71 = nil
+        local u72 = nil
+        local u73 = nil
+        local u74 = nil
+
+        local function u78(p75)
+            local v76 = p75.Position - u74
+            local v77 = UDim2.new(u71.X.Scale, u71.X.Offset + v76.X, u71.Y.Scale, u71.Y.Offset + v76.Y)
+
+            _TweenService:Create(p70, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = v77}):Play()
+        end
+
+        p70.InputBegan:Connect(function(p79)
+            if p79.UserInputType == Enum.UserInputType.MouseButton1 or p79.UserInputType == Enum.UserInputType.Touch then
+                u72 = true
+                u74 = p79.Position
+                u71 = p70.Position
+
+                p79.Changed:Connect(function()
+                    if p79.UserInputState == Enum.UserInputState.End then
+                        u72 = false
+                    end
+                end)
+            end
+        end)
+        p70.InputChanged:Connect(function(p80)
+            if p80.UserInputType == Enum.UserInputType.MouseMovement or p80.UserInputType == Enum.UserInputType.Touch then
+                u73 = p80
+            end
+        end)
+        _UserInputService.InputChanged:Connect(function(p81)
+            if p81 == u73 and u72 then
+                u78(p81)
+            end
+        end)
+    end
+    local function v85(p83)
+        local _Size = p83.Size
+
+        p83.MouseEnter:Connect(function()
+            _TweenService:Create(p83, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(0, 255, 255),
+                Size = _Size + UDim2.new(0, 10, 0, 10),
+            }):Play()
+        end)
+        p83.MouseLeave:Connect(function()
+            _TweenService:Create(p83, TweenInfo.new(0.2), {
+                BackgroundColor3 = p83.BackgroundColor3,
+                Size = _Size,
+            }):Play()
+        end)
+    end
+
+    v82(_Frame4)
+    v82(_Frame5)
+    v85(_TextButton)
+    v85(_TextButton2)
+    v85(_TextButton5)
+    v85(_TextButton6)
+    v85(_TextButton7)
+    v85(_TextButton8)
+    v85(_TextButton9)
+    v85(_TextButton4)
+    _TextButton3.MouseEnter:Connect(function()
+        _TweenService:Create(_TextButton3, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(0, 255, 255),
+            Size = UDim2.new(0, 130, 0, 35),
+        }):Play()
+        _TweenService:Create(_UIStroke3, TweenInfo.new(0.2), {Transparency = 0}):Play()
+    end)
+    _TextButton3.MouseLeave:Connect(function()
+        _TweenService:Create(_TextButton3, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(0, 0, 255),
+            Size = UDim2.new(0, 120, 0, 30),
+        }):Play()
+        _TweenService:Create(_UIStroke3, TweenInfo.new(0.2), {Transparency = 0.5}):Play()
+    end)
+    _TextButton.MouseButton1Click:Connect(function()
+        if _TextBox.Text ~= u13 then
+            _TextLabel4.Text = 'Incorrect key. Please get the latest key.'
+            _TextLabel4.Visible = true
+
+            task.delay(5, function()
+                _TextLabel4.Visible = false
+            end)
+            game.StarterGui:SetCore('SendNotification', {
+                Title = 'Invalid Key',
+                Text = 'Please enter the correct key!',
+                Duration = 3,
+            })
+            _TweenService:Create(_Frame4, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 2, true), {
+                Position = _Frame4.Position + UDim2.new(0, 10, 0, 0),
+            }):Play()
+        else
+            u17(_TextBox.Text)
+
+            u14 = true
+            _ScreenGui.Enabled = true
+
+            u28:Play()
+            u29:Play()
+            task.spawn(u31)
+            task.delay(4, function()
+                _ScreenGui:Destroy()
+            end)
+
+            local v86 = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+            local v87 = _TweenService:Create(_Frame4, v86, {BackgroundTransparency = 1})
+            local v88 = _Frame4
+            local v89, v90, v91 = ipairs(v88:GetChildren())
+
+            while true do
+                local v92
+
+                v91, v92 = v89(v90, v91)
+
+                if v91 == nil then
+                    break
+                end
+                if v92:IsA('GuiObject') then
+                    _TweenService:Create(v92, v86, {
+                        BackgroundTransparency = 1,
+                        TextTransparency = 1,
+                    }):Play()
+                end
+            end
+
+            v87:Play()
+            v87.Completed:Connect(function()
+                _ScreenGui2:Destroy()
+            end)
+        end
+    end)
+    _TextButton2.MouseButton1Click:Connect(function()
+        _Frame4.Visible = false
+        _Frame5.Visible = true
+    end)
+    _TextButton5.MouseButton1Click:Connect(function()
+        setclipboard('https://workink.net/1Zkc/uysapz2m')
+        game.StarterGui:SetCore('SendNotification', {
+            Title = 'Link Copied',
+            Text = 'Work Ink link copied to clipboard!',
+            Duration = 3,
+        })
+    end)
+    _TextButton6.MouseButton1Click:Connect(function()
+        setclipboard('https://link-hub.net/1343090/key-system')
+        game.StarterGui:SetCore('SendNotification', {
+            Title = 'Link Copied',
+            Text = 'Linkvertise link copied to clipboard!',
+            Duration = 3,
+        })
+    end)
+    _TextButton7.MouseButton1Click:Connect(function()
+        setclipboard('https://discord.gg/59ct8ykQtr')
+        game.StarterGui:SetCore('SendNotification', {
+            Title = 'Link Copied',
+            Text = 'Discord invite link copied to clipboard!',
+            Duration = 3,
+        })
+    end)
+    _TextButton8.MouseButton1Click:Connect(function()
+        setclipboard('https://adfoc.us/872092110064681')
+        game.StarterGui:SetCore('SendNotification', {
+            Title = 'Link Copied',
+            Text = 'AdFocus link copied to clipboard!',
+            Duration = 3,
+        })
+    end)
+    _TextButton9.MouseButton1Click:Connect(function()
+        _Frame5.Visible = false
+        _Frame4.Visible = true
+    end)
+    _TextButton3.MouseButton1Click:Connect(function()
+        setclipboard('https://discord.gg/59ct8ykQtr')
+        game.StarterGui:SetCore('SendNotification', {
+            Title = 'Support Link',
+            Text = 'Discord support link copied!',
+            Duration = 3,
+        })
+    end)
+    _TextButton4.MouseButton1Click:Connect(function()
+        local v93 = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        local v94 = _TweenService:Create(_Frame4, v93, {BackgroundTransparency = 1})
+        local v95 = _Frame4
+        local v96, v97, v98 = ipairs(v95:GetChildren())
+
+        while true do
+            local v99
+
+            v98, v99 = v96(v97, v98)
+
+            if v98 == nil then
+                break
+            end
+            if v99:IsA('GuiObject') then
+                _TweenService:Create(v99, v93, {
+                    BackgroundTransparency = 1,
+                    TextTransparency = 1,
+                }):Play()
+            end
+        end
+
+        if _Frame5.Visible then
+            local v100 = _Frame5
+            local v101, v102, v103 = ipairs(v100:GetChildren())
+
+            while true do
+                local v104
+
+                v103, v104 = v101(v102, v103)
+
+                if v103 == nil then
+                    break
+                end
+                if v104:IsA('GuiObject') then
+                    _TweenService:Create(v104, v93, {
+                        BackgroundTransparency = 1,
+                        TextTransparency = 1,
+                    }):Play()
+                end
+            end
+
+            _TweenService:Create(_Frame5, v93, {BackgroundTransparency = 1}):Play()
+        end
+
+        v94:Play()
+        v94.Completed:Connect(function()
+            _ScreenGui2:Destroy()
+        end)
+    end)
+
+    u34 = _ScreenGui
+end
+
+while not u14 do
+    task.wait()
+end
+
+if not u34.Enabled then
+    u34.Enabled = true
+
+    u28:Play()
+    u29:Play()
+    task.spawn(u31)
+    task.delay(4, function()
+        u34:Destroy()
+    end)
+end
+
+local u105 = true
+local u106 = true
+local u107 = true
+local u108 = true
+local u109 = true
+local u110 = true
+local u111 = true
+local u112 = true
+local u113 = {
+    SharpBend = 4,
+    OrbitStep = 3,
+    DeadFlick = 1.5,
+    BlackFlow = 15,
+    KillLine = 3,
+    SilentLink = 5,
+    CrashIn = 2,
+}
+local u114 = {
+    SharpBend = 0,
+    OrbitStep = 0,
+    DeadFlick = 0,
+    BlackFlow = 0,
+    KillLine = 0,
+    SilentLink = 0,
+    CrashIn = 0,
+}
+local u115 = nil
+local u116 = nil
+local _Animation = Instance.new('Animation')
+
+_Animation.AnimationId = 'rbxassetid://126131431957093'
+
+local u118 = _Humanoid:LoadAnimation(_Animation)
+
+u118.Looped = false
+
+local _Sound = Instance.new('Sound')
+
+_Sound.SoundId = 'rbxassetid://7423558642'
+_Sound.Volume = 2
+_Sound.Parent = _HumanoidRootPart
+
+local _Sound2 = Instance.new('Sound')
+
+_Sound2.SoundId = 'rbxassetid://1837831424'
+_Sound2.Volume = 3
+_Sound2.Parent = _HumanoidRootPart
+
+local _Animation2 = Instance.new('Animation')
+
+_Animation2.AnimationId = 'rbxassetid://136363025870194'
+
+local u122 = _Humanoid:LoadAnimation(_Animation2)
+
+u122.Looped = false
+
+local _Sound3 = Instance.new('Sound')
+
+_Sound3.SoundId = 'rbxassetid://80694732550113'
+_Sound3.Volume = 2
+_Sound3.Parent = _HumanoidRootPart
+
+local _Animation3 = Instance.new('Animation')
+
+_Animation3.AnimationId = 'rbxassetid://76578605918316'
+
+local u125 = _Humanoid:LoadAnimation(_Animation3)
+
+u125.Looped = false
+
+local _Animation4 = Instance.new('Animation')
+
+_Animation4.AnimationId = 'rbxassetid://118515432350420'
+
+local u127 = _Humanoid:LoadAnimation(_Animation4)
+
+u127.Looped = false
+
+local _Sound4 = Instance.new('Sound')
+
+_Sound4.SoundId = 'rbxassetid://120732110348309'
+_Sound4.Volume = 2
+_Sound4.Parent = _HumanoidRootPart
+
+local _Sound5 = Instance.new('Sound')
+
+_Sound5.SoundId = 'rbxassetid://132269224818658'
+_Sound5.Volume = 2
+_Sound5.Looped = true
+_Sound5.Parent = _HumanoidRootPart
+
+local _Sound6 = Instance.new('Sound')
+
+_Sound6.SoundId = 'rbxassetid://112601361897043'
+_Sound6.Volume = 2
+_Sound6.Looped = true
+_Sound6.Parent = _HumanoidRootPart
+
+local _Animation5 = Instance.new('Animation')
+
+_Animation5.AnimationId = 'rbxassetid://118398458393139'
+
+local u132 = _Humanoid:LoadAnimation(_Animation5)
+
+u132.Looped = false
+
+local _Sound7 = Instance.new('Sound')
+
+_Sound7.SoundId = 'rbxassetid://7123371384'
+_Sound7.Volume = 5
+_Sound7.Parent = _HumanoidRootPart
+
+local _Sound8 = Instance.new('Sound')
+
+_Sound8.SoundId = 'rbxassetid://75364604862973'
+_Sound8.Volume = 2
+_Sound8.Parent = _HumanoidRootPart
+
+local _Animation6 = Instance.new('Animation')
+
+_Animation6.AnimationId = 'rbxassetid://118398458393139'
+
+local u136 = _Humanoid:LoadAnimation(_Animation6)
+
+u136.Looped = false
+
+local _Sound9 = Instance.new('Sound')
+
+_Sound9.SoundId = 'rbxassetid://1837831527'
+_Sound9.Volume = 3
+_Sound9.Parent = _HumanoidRootPart
+
+local _Animation7 = Instance.new('Animation')
+
+_Animation7.AnimationId = 'rbxassetid://83474010887370'
+
+local u139 = _Humanoid:LoadAnimation(_Animation7)
+
+u139.Looped = false
+
+local _Sound10 = Instance.new('Sound')
+
+_Sound10.SoundId = 'rbxassetid://116704562284891'
+_Sound10.Volume = 3
+_Sound10.Parent = _HumanoidRootPart
+
+local _Sound11 = Instance.new('Sound')
+
+_Sound11.SoundId = 'rbxassetid://72014632956520'
+_Sound11.Volume = 3
+_Sound11.Parent = _HumanoidRootPart
+
+local _BillboardGui = Instance.new('BillboardGui')
+
+_BillboardGui.Name = 'TeammateMark'
+_BillboardGui.AlwaysOnTop = true
+_BillboardGui.StudsOffset = Vector3.new(0, 3, 0)
+_BillboardGui.Parent = _LocalPlayer.PlayerGui
+_BillboardGui.Enabled = false
+
+local _Frame6 = Instance.new('Frame')
+
+_Frame6.Size = UDim2.new(1, 0, 1, 0)
+_Frame6.BackgroundColor3 = Color3.fromRGB(0, 242, 255)
+_Frame6.BorderSizePixel = 0
+_Frame6.Parent = _BillboardGui
+
+local _UICorner16 = Instance.new('UICorner')
+
+_UICorner16.CornerRadius = UDim.new(1, 0)
+_UICorner16.Parent = _Frame6
+
+local _UIStroke5 = Instance.new('UIStroke')
+
+_UIStroke5.Thickness = 2
+_UIStroke5.Color = Color3.fromRGB(0, 242, 255)
+_UIStroke5.Parent = _Frame6
+
+local u146 = false
+local u147 = nil
+
+local function u156()
+    local _Football = workspace:FindFirstChild('Football')
+    local v149 = _Football and (_Football:FindFirstChild('BallAnims') and _Football.BallAnims:FindFirstChild('BALL') or _Football:FindFirstChild('BALL'))
+
+    if v149 then
+        return v149
+    end
+
+    local v150 = _Players
+    local v151, v152, v153 = ipairs(v150:GetPlayers())
+
+    while true do
+        local v154
+
+        v153, v154 = v151(v152, v153)
+
+        if v153 == nil then
+            break
+        end
+        if v154.Character then
+            local _BALL = v154.Character:FindFirstChild('BALL')
+
+            if _BALL then
+                return _BALL
+            end
+        end
+    end
+
+    return nil
+end
+local function u160(p157)
+    local v158 = tick()
+
+    while tick() - v158 < p157 do
+        local v159 = u156()
+
+        if v159 and v159.Velocity.Magnitude > 10 then
+            return true
+        end
+
+        task.wait()
+    end
+
+    return false
+end
+local function u173(p161)
+    local v162 = Vector3.new(0, 0, 0)
+    local v163 = _Players
+    local v164, v165, v166 = ipairs(v163:GetPlayers())
+    local v167 = 5
+    local v168 = 10
+    local v169 = 10
+
+    while true do
+        local v170
+
+        v166, v170 = v164(v165, v166)
+
+        if v166 == nil then
+            break
+        end
+        if v170 ~= _LocalPlayer and (v170.Team ~= _LocalPlayer.Team and v170.Character) and v170.Character:FindFirstChild('HumanoidRootPart') then
+            local _HumanoidRootPart2 = v170.Character.HumanoidRootPart
+            local _Magnitude = (p161.Position - _HumanoidRootPart2.Position).Magnitude
+
+            if _Magnitude < v167 then
+                v162 = v162 + (p161.Position - _HumanoidRootPart2.Position).Unit * ((v167 - _Magnitude) / v167 * v168)
+            end
+        end
+    end
+
+    if v169 < v162.Magnitude then
+        v162 = v162.Unit * v169
+    end
+
+    return v162
+end
+local function u182()
+    local _Character = _LocalPlayer.Character
+
+    if _Character then
+        local v175 = _Character:FindFirstChild('UpperTorso') or _Character:FindFirstChild('Torso')
+
+        if v175 then
+            local _BodyBackAttachment = v175:FindFirstChild('BodyBackAttachment')
+
+            if not _BodyBackAttachment then
+                _BodyBackAttachment = Instance.new('Attachment')
+                _BodyBackAttachment.Name = 'BackAttachment'
+                _BodyBackAttachment.Position = Vector3.new(0, 0, 0.5)
+                _BodyBackAttachment.Parent = v175
+            end
+
+            local v177 = game.ReplicatedStorage.Assets.Vfx.ShidouFloor.Enable.Main:Clone()
+
+            v177.Parent = _BodyBackAttachment
+
+            local v178, v179, v180 = ipairs(v177:GetChildren())
+
+            while true do
+                local v181
+
+                v180, v181 = v178(v179, v180)
+
+                if v180 == nil then
+                    break
+                end
+                if v181:IsA('ParticleEmitter') then
+                    v181.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                    v181.Rate = v181.Rate * 4
+                    v181.Lifetime = NumberRange.new(v181.Lifetime.Min * 2, v181.Lifetime.Max * 2)
+                    v181.Size = NumberSequence.new({
+                        NumberSequenceKeypoint.new(0, v181.Size.Keypoints[1].Value * 2),
+                        NumberSequenceKeypoint.new(1, v181.Size.Keypoints[2].Value * 2),
+                    })
+
+                    v181:Emit(30)
+
+                    v181.Enabled = true
+                end
+            end
+
+            return v177
+        end
+    end
+end
+local function u187(p183)
+    local _BillboardGui2 = Instance.new('BillboardGui')
+
+    _BillboardGui2.Size = UDim2.new(0, 150, 0, 40)
+    _BillboardGui2.StudsOffset = Vector3.new(0, 3, 0)
+    _BillboardGui2.AlwaysOnTop = true
+    _BillboardGui2.Parent = u9:FindFirstChild('Head')
+
+    local _TextLabel6 = Instance.new('TextLabel')
+
+    _TextLabel6.Size = UDim2.new(1, 0, 1, 0)
+    _TextLabel6.BackgroundTransparency = 1
+    _TextLabel6.Text = p183
+    _TextLabel6.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _TextLabel6.Font = Enum.Font.GothamBlack
+    _TextLabel6.TextSize = 16
+    _TextLabel6.TextStrokeTransparency = 0.5
+    _TextLabel6.Parent = _BillboardGui2
+
+    local u186 = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+    _TweenService:Create(_TextLabel6, u186, {TextTransparency = 0}):Play()
+    task.delay(2, function()
+        _TweenService:Create(_TextLabel6, u186, {TextTransparency = 1}):Play()
+        task.wait(0.5)
+        _BillboardGui2:Destroy()
+    end)
+end
+
+local u188 = {
+    "I'll mangle you!",
+    'I\u{2019}m gonna crush you to dust!',
+    'Your dreams die here. I\u{2019}ll bury them myself.',
+    'Get out of my sight, or I\u{2019}ll erase you!',
+    'I\u{2019}ll destroy everything in my path, starting with you!',
+    'You\u{2019}re nothing but prey. I\u{2019}m the predator.',
+    'I\u{2019}ll rip your ego to shreds!',
+    'I\u{2019}ll carve my name into your corpse!',
+    'Step up or get slaughtered!',
+    'You\u{2019}re already dead\u{2014}you just don\u{2019}t know it yet.',
+    'I\u{2019}ll burn your ambitions to ashes!',
+    'Cross me, and I\u{2019}ll end your existence!',
+    'I\u{2019}ll shatter your soul on this field!',
+    'You\u{2019}re not a rival\u{2014}you\u{2019}re a sacrifice.',
+    'I\u{2019}ll drown you in your own weakness!',
+}
+local v189 = loadstring(game:HttpGet('https://raw.githubusercontent.com/AZYsGithub/DrRay-UI-Library/main/DrRay.lua'))()
+
+v189:Load('Souls Hub', 'Default')
+
+local _Abilities = v189.newTab('Abilities', 'rbxassetid://11963373994')
+
+local function u198()
+    local _DrRay = game:GetService('CoreGui'):FindFirstChild('DrRay')
+
+    if _DrRay then
+        _DrRay:Destroy()
+    end
+
+    local _Abilities2 = _LocalPlayer.PlayerGui:WaitForChild('InGameUI'):WaitForChild('Bottom'):WaitForChild('Abilities')
+    local v193, v194, v195 = ipairs({
+        'SharpBendButton',
+        'OrbitStepButton',
+        'DeadFlickButton',
+        'CrashInButton',
+        'BlackFlowButton',
+        'KillLineButton',
+        'SilentLinkButton',
+        'DestroyAbilitiesButton',
+    })
+
+    while true do
+        local v196
+
+        v195, v196 = v193(v194, v195)
+
+        if v195 == nil then
+            break
+        end
+
+        local v197 = _Abilities2:FindFirstChild(v196)
+
+        if v197 then
+            v197:Destroy()
+        end
+    end
+
+    if u115 then
+        u115:Disconnect()
+    end
+    if u116 then
+        u116:Disconnect()
+    end
+    if _BillboardGui then
+        _BillboardGui:Destroy()
+    end
+
+    game.StarterGui:SetCore('SendNotification', {
+        Title = 'Abilities Destroyed',
+        Text = 'All abilities and UI have been removed.',
+        Duration = 5,
+    })
+end
+
+_Abilities.newLabel('Ability Controls')
+_Abilities.newToggle('Sharp Bend', 'Toggle Sharp Bend ability', true, function(p199)
+    u105 = p199
+end)
+_Abilities.newToggle('Orbit Step', 'Toggle Orbit Step ability', true, function(p200)
+    u106 = p200
+end)
+_Abilities.newToggle('Dead Flick', 'Toggle Dead Flick ability', true, function(p201)
+    u107 = p201
+end)
+_Abilities.newToggle('Black Flow', 'Toggle Black Flow ability', true, function(p202)
+    u108 = p202
+end)
+_Abilities.newToggle('Black Flow Slide', 'Toggle slide spam and dash in Black Flow', true, function(p203)
+    u109 = p203
+end)
+_Abilities.newToggle('Kill Line', 'Toggle Kill Line ability', true, function(p204)
+    u110 = p204
+end)
+_Abilities.newToggle('Silent Link', 'Toggle Silent Link ability', true, function(p205)
+    u111 = p205
+end)
+_Abilities.newToggle('Crash In', 'Toggle Crash In ability', true, function(p206)
+    u112 = p206
+end)
+
+local function v209(p207)
+    local _Frame7 = Instance.new('Frame')
+
+    _Frame7.Name = 'CooldownOverlay'
+    _Frame7.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    _Frame7.BackgroundTransparency = 0.5
+    _Frame7.BorderSizePixel = 0
+    _Frame7.Size = UDim2.new(1, 0, 0, 0)
+    _Frame7.Position = UDim2.new(0, 0, 0, 0)
+    _Frame7.AnchorPoint = Vector2.new(0, 0)
+    _Frame7.ZIndex = 10
+    _Frame7.Parent = p207
+end
+local function u289()
+    if u105 then
+        local v210 = tick()
+
+        if v210 - u114.SharpBend >= u113.SharpBend then
+            u118:Play()
+            _Sound:Play()
+            _ReplicatedStorage.Packages.Knit.Services.BallService.RE.Shoot:FireServer(50)
+            _Sound2:Play()
+
+            local _Sound12 = Instance.new('Sound')
+
+            _Sound12.SoundId = 'rbxassetid://75364604862973'
+            _Sound12.Volume = 2
+            _Sound12.Parent = _HumanoidRootPart
+
+            local v212 = _Sound12
+
+            _Sound12.Play(v212)
+            _Sound12.Ended:Connect(function()
+                _Sound12:Destroy()
+            end)
+
+            if u160(0.6) then
+                u114.SharpBend = v210
+
+                local v213 = u9:FindFirstChild('RightFoot') or u9:FindFirstChild('Right Leg')
+
+                if v213 then
+                    local u214 = game.ReplicatedStorage.Effects.BeinschussCutscene.CutsceneVFX.AryuSmash.Attachment:Clone()
+
+                    u214.Parent = v213
+
+                    local v215, v216, v217 = ipairs(u214:GetChildren())
+
+                    while true do
+                        local v218, v219 = v215(v216, v217)
+
+                        if v218 == nil then
+                            break
+                        end
+
+                        v217 = v218
+
+                        if v219:IsA('ParticleEmitter') then
+                            v219.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                            v219.Rate = v219.Rate * 3
+                            v219.Lifetime = NumberRange.new(v219.Lifetime.Min * 2, v219.Lifetime.Max * 2)
+                            v219.Size = NumberSequence.new({
+                                NumberSequenceKeypoint.new(0, v219.Size.Keypoints[1].Value * 2),
+                                NumberSequenceKeypoint.new(1, v219.Size.Keypoints[2].Value * 2),
+                            })
+
+                            v219:Emit(30)
+
+                            v219.Enabled = true
+                        end
+                    end
+
+                    task.delay(0.5, function()
+                        local v220 = u214
+                        local v221, v222, v223 = ipairs(v220:GetChildren())
+
+                        while true do
+                            local v224
+
+                            v223, v224 = v221(v222, v223)
+
+                            if v223 == nil then
+                                break
+                            end
+                            if v224:IsA('ParticleEmitter') then
+                                v224.Enabled = false
+                            end
+                        end
+
+                        u214:Destroy()
+                    end)
+
+                    local u225 = game.ReplicatedStorage.Effects.MagnusCutscene.CutsceneVFX.Root.emit:Clone()
+
+                    u225.Parent = v213
+
+                    local v226, v227, v228 = ipairs(u225:GetChildren())
+
+                    while true do
+                        local v229
+
+                        v228, v229 = v226(v227, v228)
+
+                        if v228 == nil then
+                            break
+                        end
+                        if v229:IsA('ParticleEmitter') then
+                            v229.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                            v229.Rate = v229.Rate * 3
+                            v229.Lifetime = NumberRange.new(v229.Lifetime.Min * 2, v229.Lifetime.Max * 2)
+                            v229.Size = NumberSequence.new({
+                                NumberSequenceKeypoint.new(0, v229.Size.Keypoints[1].Value * 2),
+                                NumberSequenceKeypoint.new(1, v229.Size.Keypoints[2].Value * 2),
+                            })
+
+                            v229:Emit(30)
+
+                            v229.Enabled = true
+                        end
+                    end
+
+                    task.delay(0.5, function()
+                        local v230 = u225
+                        local v231, v232, v233 = ipairs(v230:GetChildren())
+
+                        while true do
+                            local v234
+
+                            v233, v234 = v231(v232, v233)
+
+                            if v233 == nil then
+                                break
+                            end
+                            if v234:IsA('ParticleEmitter') then
+                                v234.Enabled = false
+                            end
+                        end
+
+                        u225:Destroy()
+                    end)
+
+                    local u235 = game.ReplicatedStorage.Effects.NELRin.RinCurveShot.Trail.Attachment:Clone()
+
+                    u235.Parent = v213
+
+                    local v236, v237, v238 = ipairs(u235:GetChildren())
+
+                    while true do
+                        local v239
+
+                        v238, v239 = v236(v237, v238)
+
+                        if v238 == nil then
+                            break
+                        end
+                        if v239:IsA('ParticleEmitter') then
+                            v239.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                            v239.Rate = v239.Rate * 5
+                            v239.Lifetime = NumberRange.new(v239.Lifetime.Min * 3, v239.Lifetime.Max * 3)
+                            v239.Size = NumberSequence.new({
+                                NumberSequenceKeypoint.new(0, v239.Size.Keypoints[1].Value * 3),
+                                NumberSequenceKeypoint.new(1, v239.Size.Keypoints[2].Value * 3),
+                            })
+
+                            v239:Emit(50)
+
+                            v239.Enabled = true
+                        end
+                    end
+
+                    task.delay(0.5, function()
+                        local v240 = u235
+                        local v241, v242, v243 = ipairs(v240:GetChildren())
+
+                        while true do
+                            local v244
+
+                            v243, v244 = v241(v242, v243)
+
+                            if v243 == nil then
+                                break
+                            end
+                            if v244:IsA('ParticleEmitter') then
+                                v244.Enabled = false
+                            end
+                        end
+
+                        u235:Destroy()
+                    end)
+
+                    local u245 = game.ReplicatedStorage.Effects.NELRin.DestructiveCrashShotFX.VFX.ChargeKick.Attachment:Clone()
+
+                    u245.Parent = v213
+
+                    local v246, v247, v248 = ipairs(u245:GetChildren())
+
+                    while true do
+                        local v249
+
+                        v248, v249 = v246(v247, v248)
+
+                        if v248 == nil then
+                            break
+                        end
+                        if v249:IsA('ParticleEmitter') then
+                            v249.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                            v249.Rate = v249.Rate * 5
+                            v249.Lifetime = NumberRange.new(v249.Lifetime.Min * 3, v249.Lifetime.Max * 3)
+                            v249.Size = NumberSequence.new({
+                                NumberSequenceKeypoint.new(0, v249.Size.Keypoints[1].Value * 3),
+                                NumberSequenceKeypoint.new(1, v249.Size.Keypoints[2].Value * 3),
+                            })
+
+                            v249:Emit(50)
+
+                            v249.Enabled = true
+                        end
+                    end
+
+                    task.delay(0.5, function()
+                        local v250 = u245
+                        local v251, v252, v253 = ipairs(v250:GetChildren())
+
+                        while true do
+                            local v254
+
+                            v253, v254 = v251(v252, v253)
+
+                            if v253 == nil then
+                                break
+                            end
+                            if v254:IsA('ParticleEmitter') then
+                                v254.Enabled = false
+                            end
+                        end
+
+                        u245:Destroy()
+                    end)
+                end
+
+                local v255 = u156()
+
+                if v255 then
+                    local _Position = v255.Position
+                    local _Unit = _CurrentCamera.CFrame.LookVector.Unit
+                    local v258 = {
+                        direction = math.random(-1, 1) * 2 - 1,
+                        up = math.random(0, 1) == 1,
+                    }
+                    local v259 = 80
+                    local v260 = v258.direction * _CurrentCamera.CFrame.RightVector * 35
+                    local v261 = v258.up and v259 and v259 or 20
+                    local u262 = _Position + _Unit * math.random(10, 100) + v260 + Vector3.new(0, v261, 0)
+                    local u263 = _Position + _Unit * 150
+                    local v264, v265, v266 = ipairs(v255:GetChildren())
+
+                    while true do
+                        local v267, v268 = v264(v265, v266)
+
+                        if v267 == nil then
+                            break
+                        end
+
+                        v266 = v267
+
+                        if v268:IsA('AlignPosition') then
+                            v268:Destroy()
+                        end
+                    end
+
+                    local _AlignPosition = Instance.new('AlignPosition')
+
+                    _AlignPosition.MaxForce = 10000
+                    _AlignPosition.Responsiveness = 250
+                    _AlignPosition.Parent = v255
+
+                    local _Attachment = Instance.new('Attachment')
+
+                    _Attachment.Parent = v255
+                    _AlignPosition.Attachment0 = _Attachment
+
+                    local _Attachment2 = Instance.new('Attachment')
+
+                    _Attachment2.Parent = workspace.Terrain
+                    _AlignPosition.Attachment1 = _Attachment2
+
+                    local v272 = {
+                        game.ReplicatedStorage.Effects.NELRin.DestructiveCrashShotFX.VFX.ChargeKick.Attachment,
+                        game.ReplicatedStorage.Effects.NELRin.ANewToy.Environment.BallFX.w.VFX,
+                        game.ReplicatedStorage.Effects.NELRin.Impulse.SmokeRun.Attachment,
+                        game.ReplicatedStorage.Effects.NELRin.Impulse.SmokeRun.Attachment,
+                    }
+                    local v273, v274, v275 = ipairs(v272)
+                    local v276 = {}
+
+                    while true do
+                        local v277
+
+                        v275, v277 = v273(v274, v275)
+
+                        if v275 == nil then
+                            break
+                        end
+
+                        local v278 = v277:Clone()
+
+                        v278.Parent = v255
+
+                        local v279, v280, v281 = ipairs(v278:GetChildren())
+
+                        while true do
+                            local v282
+
+                            v281, v282 = v279(v280, v281)
+
+                            if v281 == nil then
+                                break
+                            end
+                            if v282:IsA('ParticleEmitter') then
+                                v282.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                                v282.Rate = v282.Rate * 6
+                                v282.Lifetime = NumberRange.new(v282.Lifetime.Min * 2, v282.Lifetime.Max * 2)
+                                v282.Size = NumberSequence.new({
+                                    NumberSequenceKeypoint.new(0, v282.Size.Keypoints[1].Value * 2),
+                                    NumberSequenceKeypoint.new(1, v282.Size.Keypoints[2].Value * 2),
+                                })
+
+                                v282:Emit(30)
+
+                                v282.Enabled = true
+                            end
+                        end
+
+                        table.insert(v276, v278)
+                        _Debris:AddItem(v278, 2.5)
+                    end
+
+                    local _Sound13 = Instance.new('Sound')
+
+                    _Sound13.SoundId = 'rbxassetid://133901064330793'
+                    _Sound13.Volume = 3
+                    _Sound13.Looped = true
+                    _Sound13.Parent = v255
+
+                    local v284 = _Sound13
+
+                    _Sound13.Play(v284)
+
+                    local u285 = tick()
+                    local u286 = (u263 - _Position).Magnitude * 1.2 / 250
+                    local u287 = nil
+
+                    u287 = _RunService.Heartbeat:Connect(function()
+                        local v288 = (tick() - u285) / u286
+
+                        if v288 >= 1 then
+                            u287:Disconnect()
+                            _AlignPosition:Destroy()
+                            _Attachment:Destroy()
+                            _Attachment2:Destroy()
+                            _Sound13:Stop()
+                            _Sound13:Destroy()
+                        else
+                            _Attachment2.Position = (1 - v288) ^ 2 * _Position + 2 * (1 - v288) * v288 * u262 + v288 ^ 2 * u263
+                        end
+                    end)
+                end
+            else
+                warn('Ball not shot within time limit')
+            end
+
+            u187(u188[math.random(1, #u188)])
+        else
+            warn('Sharp Bend on cooldown!')
+        end
+    else
+        return
+    end
+end
+local function u350()
+    if u106 then
+        local v290 = tick()
+
+        if v290 - u114.OrbitStep >= u113.OrbitStep then
+            _ReplicatedStorage.Packages.Knit.Services.BallService.RE.Shoot:FireServer(50)
+
+            if u160(0.6) then
+                u114.OrbitStep = v290
+
+                local u291 = u156()
+
+                if u291 then
+                    local v292 = _HumanoidRootPart.Position + _HumanoidRootPart.CFrame.LookVector * 28
+                    local _Position2 = u291.Position
+                    local _Unit2 = (v292 - _Position2).Unit
+                    local v295 = _HumanoidRootPart.CFrame.RightVector * 65
+                    local v296 = Vector3.new(0, 35, 0)
+                    local u297 = _Position2 + _Unit2 * 5 + v295 + v296
+                    local v298, v299, v300 = ipairs(u291:GetChildren())
+                    local u301 = v292
+
+                    while true do
+                        local v302, v303 = v298(v299, v300)
+
+                        if v302 == nil then
+                            break
+                        end
+
+                        v300 = v302
+
+                        if v303:IsA('AlignPosition') then
+                            v303:Destroy()
+                        end
+                    end
+
+                    local _AlignPosition2 = Instance.new('AlignPosition')
+
+                    _AlignPosition2.MaxForce = 10000
+                    _AlignPosition2.Responsiveness = 250
+                    _AlignPosition2.Parent = u291
+
+                    local _Attachment3 = Instance.new('Attachment')
+
+                    _Attachment3.Parent = u291
+                    _AlignPosition2.Attachment0 = _Attachment3
+
+                    local _Attachment4 = Instance.new('Attachment')
+
+                    _Attachment4.Parent = workspace.Terrain
+                    _AlignPosition2.Attachment1 = _Attachment4
+
+                    local v307 = {
+                        game.ReplicatedStorage.Effects.NELRin.DestructiveCrashShotFX.VFX.ChargeKick.Attachment,
+                        game.ReplicatedStorage.Effects.NELRin.ANewToy.Environment.BallFX.w.VFX,
+                        game.ReplicatedStorage.Effects.NELRin.Impulse.SmokeRun.Attachment,
+                        game.ReplicatedStorage.Effects.NELRin.Impulse.SmokeRun.Attachment,
+                    }
+                    local v308, v309, v310 = ipairs(v307)
+                    local v311 = {}
+
+                    while true do
+                        local v312
+
+                        v310, v312 = v308(v309, v310)
+
+                        if v310 == nil then
+                            break
+                        end
+
+                        local v313 = v312:Clone()
+
+                        v313.Parent = u291
+
+                        local v314, v315, v316 = ipairs(v313:GetChildren())
+
+                        while true do
+                            local v317, v318 = v314(v315, v316)
+
+                            if v317 == nil then
+                                break
+                            end
+
+                            v316 = v317
+
+                            if v318:IsA('ParticleEmitter') then
+                                v318.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                                v318.Rate = v318.Rate * 4
+                                v318.Lifetime = NumberRange.new(v318.Lifetime.Min * 2, v318.Lifetime.Max * 2)
+                                v318.Size = NumberSequence.new({
+                                    NumberSequenceKeypoint.new(0, v318.Size.Keypoints[1].Value * 2),
+                                    NumberSequenceKeypoint.new(1, v318.Size.Keypoints[2].Value * 2),
+                                })
+
+                                v318:Emit(30)
+
+                                v318.Enabled = true
+                            end
+                        end
+
+                        table.insert(v311, v313)
+                        _Debris:AddItem(v313, 1.5)
+                    end
+
+                    local _Sound14 = Instance.new('Sound')
+
+                    _Sound14.SoundId = 'rbxassetid://133901064330793'
+                    _Sound14.Volume = 3
+                    _Sound14.Looped = true
+                    _Sound14.Parent = u291
+
+                    local v320 = _Sound14
+
+                    _Sound14.Play(v320)
+
+                    local v321 = _HumanoidRootPart.Position + -_HumanoidRootPart.CFrame.RightVector * 20 + _HumanoidRootPart.CFrame.LookVector * 15
+                    local u322 = v292
+                    local _AlignPosition3 = Instance.new('AlignPosition')
+
+                    _AlignPosition3.MaxForce = 20000
+                    _AlignPosition3.Responsiveness = 150
+                    _AlignPosition3.Parent = _HumanoidRootPart
+
+                    local _Attachment5 = Instance.new('Attachment')
+
+                    _Attachment5.Parent = _HumanoidRootPart
+                    _AlignPosition3.Attachment0 = _Attachment5
+
+                    local _Attachment6 = Instance.new('Attachment')
+
+                    _Attachment6.Parent = workspace.Terrain
+                    _AlignPosition3.Attachment1 = _Attachment6
+
+                    local u326 = tick()
+                    local u327 = 0.6
+
+                    local function u346()
+                        local v328 = u9:FindFirstChild('LeftFoot') or u9:FindFirstChild('Left Leg')
+                        local v329 = u9:FindFirstChild('RightFoot') or u9:FindFirstChild('Right Leg')
+
+                        if v328 and v329 then
+                            local _Impact = game.ReplicatedStorage.Effects.FinalShot.VFX.GroundImpact.Impact
+                            local v331 = _Impact:Clone()
+
+                            v331.Parent = v328
+
+                            local v332 = _Impact:Clone()
+
+                            v332.Parent = v329
+
+                            local v333, v334, v335 = ipairs({v331, v332})
+
+                            while true do
+                                local u336
+
+                                v335, u336 = v333(v334, v335)
+
+                                if v335 == nil then
+                                    break
+                                end
+
+                                local v337, v338, v339 = ipairs(u336:GetChildren())
+
+                                while true do
+                                    local v340
+
+                                    v339, v340 = v337(v338, v339)
+
+                                    if v339 == nil then
+                                        break
+                                    end
+                                    if v340:IsA('ParticleEmitter') then
+                                        v340.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                                        v340.Rate = v340.Rate * 3
+                                        v340.Lifetime = NumberRange.new(v340.Lifetime.Min * 2, v340.Lifetime.Max * 2)
+                                        v340.Size = NumberSequence.new({
+                                            NumberSequenceKeypoint.new(0, v340.Size.Keypoints[1].Value * 2),
+                                            NumberSequenceKeypoint.new(1, v340.Size.Keypoints[2].Value * 2),
+                                        })
+
+                                        v340:Emit(30)
+
+                                        v340.Enabled = true
+                                    end
+                                end
+
+                                task.delay(0.5, function()
+                                    local v341 = u336
+                                    local v342, v343, v344 = ipairs(v341:GetChildren())
+
+                                    while true do
+                                        local v345
+
+                                        v344, v345 = v342(v343, v344)
+
+                                        if v344 == nil then
+                                            break
+                                        end
+                                        if v345:IsA('ParticleEmitter') then
+                                            v345.Enabled = false
+                                        end
+                                    end
+
+                                    u336:Destroy()
+                                end)
+                            end
+                        end
+                    end
+
+                    local u347 = u182()
+
+                    u122:Play()
+                    _Sound3:Play()
+
+                    _Attachment6.Position = v321
+
+                    u346()
+                    task.delay(0.2, function()
+                        u122:Play()
+                        _Sound3:Play()
+
+                        _Attachment6.Position = u322
+
+                        u346()
+                        u187(u188[math.random(1, #u188)])
+                    end)
+
+                    local u348 = nil
+
+                    u348 = _RunService.Heartbeat:Connect(function()
+                        local v349 = (tick() - u326) / u327
+
+                        if v349 >= 1 or (u291.Position - _HumanoidRootPart.Position).Magnitude < 0.1 then
+                            u348:Disconnect()
+                            _AlignPosition2:Destroy()
+                            _Attachment3:Destroy()
+                            _Attachment4:Destroy()
+                            _Sound14:Stop()
+                            _Sound14:Destroy()
+                            _AlignPosition3:Destroy()
+                            _Attachment5:Destroy()
+                            _Attachment6:Destroy()
+
+                            if u347 then
+                                u347:Destroy()
+                            end
+                        else
+                            _Attachment4.Position = (1 - v349) ^ 2 * _Position2 + 2 * (1 - v349) * v349 * u297 + v349 ^ 2 * u301 + u173(u291)
+                        end
+                    end)
+                end
+            else
+                warn('Ball not shot within time limit')
+            end
+        else
+            warn('Orbit Step on cooldown!')
+        end
+    else
+        return
+    end
+end
+local function u388()
+    if u107 then
+        local v351 = tick()
+
+        if v351 - u114.DeadFlick >= u113.DeadFlick then
+            _ReplicatedStorage.Packages.Knit.Services.BallService.RE.Shoot:FireServer(50)
+
+            if u160(0.6) then
+                u114.DeadFlick = v351
+
+                local u352 = u156()
+
+                if u352 then
+                    local _Position3 = u352.Position
+                    local v354 = _HumanoidRootPart.Position + _HumanoidRootPart.CFrame.LookVector * 26
+                    local u355 = v354
+                    local u356 = (_Position3 + u355) / 2 + Vector3.new(0, 38, 0)
+                    local v357, v358, v359 = ipairs(u352:GetChildren())
+
+                    while true do
+                        local v360, v361 = v357(v358, v359)
+
+                        if v360 == nil then
+                            break
+                        end
+
+                        v359 = v360
+
+                        if v361:IsA('AlignPosition') then
+                            v361:Destroy()
+                        end
+                    end
+
+                    local _AlignPosition4 = Instance.new('AlignPosition')
+
+                    _AlignPosition4.MaxForce = 10000
+                    _AlignPosition4.Responsiveness = 250
+                    _AlignPosition4.Parent = u352
+
+                    local _Attachment7 = Instance.new('Attachment')
+
+                    _Attachment7.Parent = u352
+                    _AlignPosition4.Attachment0 = _Attachment7
+
+                    local _Attachment8 = Instance.new('Attachment')
+
+                    _Attachment8.Parent = workspace.Terrain
+                    _AlignPosition4.Attachment1 = _Attachment8
+
+                    local v365 = {
+                        game.ReplicatedStorage.Effects.NELRin.DestructiveCrashShotFX.VFX.ChargeKick.Attachment,
+                        game.ReplicatedStorage.Effects.NELRin.ANewToy.Environment.BallFX.w.VFX,
+                        game.ReplicatedStorage.Effects.NELRin.Impulse.SmokeRun.Attachment,
+                        game.ReplicatedStorage.Effects.NELRin.Impulse.SmokeRun.Attachment,
+                    }
+                    local v366, v367, v368 = ipairs(v365)
+                    local v369 = {}
+
+                    while true do
+                        local v370
+
+                        v368, v370 = v366(v367, v368)
+
+                        if v368 == nil then
+                            break
+                        end
+
+                        local v371 = v370:Clone()
+
+                        v371.Parent = u352
+
+                        local v372, v373, v374 = ipairs(v371:GetChildren())
+
+                        while true do
+                            local v375, v376 = v372(v373, v374)
+
+                            if v375 == nil then
+                                break
+                            end
+
+                            v374 = v375
+
+                            if v376:IsA('ParticleEmitter') then
+                                v376.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                                v376.Rate = v376.Rate * 4
+                                v376.Lifetime = NumberRange.new(v376.Lifetime.Min * 2, v376.Lifetime.Max * 2)
+                                v376.Size = NumberSequence.new({
+                                    NumberSequenceKeypoint.new(0, v376.Size.Keypoints[1].Value * 2),
+                                    NumberSequenceKeypoint.new(1, v376.Size.Keypoints[2].Value * 2),
+                                })
+
+                                v376:Emit(30)
+
+                                v376.Enabled = true
+                            end
+                        end
+
+                        table.insert(v369, v371)
+                        _Debris:AddItem(v371, 2.5)
+                    end
+
+                    local _AlignPosition5 = Instance.new('AlignPosition')
+
+                    _AlignPosition5.MaxForce = 20000
+                    _AlignPosition5.Responsiveness = 150
+                    _AlignPosition5.Parent = _HumanoidRootPart
+
+                    local _Attachment9 = Instance.new('Attachment')
+
+                    _Attachment9.Parent = _HumanoidRootPart
+                    _AlignPosition5.Attachment0 = _Attachment9
+
+                    local _Attachment10 = Instance.new('Attachment')
+
+                    _Attachment10.Parent = workspace.Terrain
+                    _AlignPosition5.Attachment1 = _Attachment10
+                    _Attachment10.Position = v354
+
+                    local u380 = u182()
+
+                    u125:Play()
+
+                    local _Sound15 = Instance.new('Sound')
+
+                    _Sound15.SoundId = 'rbxassetid://18975538057'
+                    _Sound15.Volume = 5
+                    _Sound15.Parent = _HumanoidRootPart
+
+                    local v382 = _Sound15
+
+                    _Sound15.Play(v382)
+                    _Sound15.Ended:Connect(function()
+                        _Sound15:Destroy()
+                    end)
+
+                    local u383 = tick()
+                    local u384 = 0.5
+                    local u385 = nil
+
+                    u385 = _RunService.Heartbeat:Connect(function()
+                        local v386 = (tick() - u383) / u384
+
+                        if v386 >= 1 then
+                            u385:Disconnect()
+                            _AlignPosition4:Destroy()
+                            _Attachment7:Destroy()
+                            _Attachment8:Destroy()
+                            _AlignPosition5:Destroy()
+                            _Attachment9:Destroy()
+                            _Attachment10:Destroy()
+                            u125:Stop()
+
+                            if u380 then
+                                u380:Destroy()
+                            end
+                        else
+                            _Attachment8.Position = (1 - v386) ^ 2 * _Position3 + 2 * (1 - v386) * v386 * u356 + v386 ^ 2 * u355 + u173(u352)
+                        end
+                    end)
+
+                    local u387 = nil
+
+                    u387 = _RunService.Heartbeat:Connect(function()
+                        if (u352.Position - _HumanoidRootPart.Position).Magnitude < 0.1 then
+                            _AlignPosition4:Destroy()
+                            _Attachment7:Destroy()
+                            _Attachment8:Destroy()
+                            _AlignPosition5:Destroy()
+                            _Attachment9:Destroy()
+                            _Attachment10:Destroy()
+                            u125:Stop()
+
+                            if u380 then
+                                u380:Destroy()
+                            end
+
+                            u387:Disconnect()
+
+                            if u385 then
+                                u385:Disconnect()
+                            end
+
+                            u187(u188[math.random(1, #u188)])
+                        end
+                    end)
+                end
+            else
+                warn('Ball not shot within time limit')
+            end
+        else
+            warn('Dead Flick on cooldown!')
+        end
+    else
+        return
+    end
+end
+local function u434()
+    if u108 then
+        local v389 = tick()
+
+        if v389 - u114.BlackFlow >= u113.BlackFlow then
+            u114.BlackFlow = v389
+            _StatesController.SpeedBoost = 30
+
+            u127:Play()
+            _Sound4:Play()
+            _Sound5:Play()
+            _Sound6:Play()
+
+            local v390 = {
+                game.ReplicatedStorage.Effects.CrowTheft.RunningFX.Attachment,
+                game.ReplicatedStorage.Assets.Vfx.ChigiriRun.Attachment,
+                game.ReplicatedStorage.Assets.Vfx.KingsDribble.RunPlr.Attachment,
+                game.ReplicatedStorage.Effects.NELRin.DestructionDribble.SmokeRun.Attachment,
+            }
+            local v391, v392, v393 = ipairs(v390)
+            local u394 = {}
+
+            while true do
+                local v395
+
+                v393, v395 = v391(v392, v393)
+
+                if v393 == nil then
+                    break
+                end
+
+                local v396 = v395:Clone()
+
+                v396.Parent = _HumanoidRootPart
+
+                local v397, v398, v399 = ipairs(v396:GetChildren())
+
+                while true do
+                    local v400
+
+                    v399, v400 = v397(v398, v399)
+
+                    if v399 == nil then
+                        break
+                    end
+                    if v400:IsA('ParticleEmitter') then
+                        v400.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                        v400.Rate = v400.Rate * 5
+                        v400.Lifetime = NumberRange.new(v400.Lifetime.Min * 3, v400.Lifetime.Max * 3)
+                        v400.Size = NumberSequence.new({
+                            NumberSequenceKeypoint.new(0, v400.Size.Keypoints[1].Value * 3),
+                            NumberSequenceKeypoint.new(1, v400.Size.Keypoints[2].Value * 3),
+                        })
+
+                        v400:Emit(50)
+
+                        v400.Enabled = true
+                    end
+                end
+
+                table.insert(u394, v396)
+            end
+
+            local u402 = _RunService.RenderStepped:Connect(function()
+                local v401 = Vector3.new(math.random(-1, 1) * 0.5, math.random(-1, 1) * 0.5, math.random(-1, 1) * 0.5)
+
+                _CurrentCamera.CFrame = _CurrentCamera.CFrame * CFrame.new(v401)
+            end)
+            local u403 = tick()
+            local u404 = 15
+            local u405 = 0.5
+            local u406 = 0
+            local u407 = 0
+            local u408 = 2
+            local u409 = nil
+
+            u409 = _RunService.Heartbeat:Connect(function()
+                if u404 > tick() - u403 then
+                    if u109 then
+                        local v410 = _Players
+                        local v411, v412, v413 = ipairs(v410:GetPlayers())
+                        local v414 = 30
+                        local v415 = nil
+
+                        while true do
+                            local v416, v417 = v411(v412, v413)
+
+                            if v416 == nil then
+                                break
+                            end
+
+                            v413 = v416
+
+                            if v417 ~= _LocalPlayer and (v417.Team ~= _LocalPlayer.Team and v417.Character) and v417.Character:FindFirstChild('HumanoidRootPart') then
+                                local _Magnitude2 = (v417.Character.HumanoidRootPart.Position - _HumanoidRootPart.Position).Magnitude
+
+                                if _Magnitude2 < v414 then
+                                    v415 = v417
+                                    v414 = _Magnitude2
+                                end
+                            end
+                        end
+
+                        if v415 and u408 <= tick() - u407 then
+                            local _HumanoidRootPart3 = v415.Character.HumanoidRootPart
+                            local _Unit3 = (_HumanoidRootPart3.Position - _HumanoidRootPart.Position).Unit
+                            local v421 = _HumanoidRootPart3.Position - _Unit3 * 0.5
+                            local _AlignPosition6 = Instance.new('AlignPosition')
+
+                            _AlignPosition6.MaxForce = 20000
+                            _AlignPosition6.Responsiveness = 350
+                            _AlignPosition6.Parent = _HumanoidRootPart
+
+                            local _Attachment11 = Instance.new('Attachment')
+
+                            _Attachment11.Parent = _HumanoidRootPart
+                            _AlignPosition6.Attachment0 = _Attachment11
+
+                            local _Attachment12 = Instance.new('Attachment')
+
+                            _Attachment12.Position = v421
+                            _Attachment12.Parent = workspace.Terrain
+                            _AlignPosition6.Attachment1 = _Attachment12
+
+                            task.delay(0.1, function()
+                                _AlignPosition6:Destroy()
+                                _Attachment11:Destroy()
+                                _Attachment12:Destroy()
+                            end)
+
+                            u407 = tick()
+                        end
+                        if u405 <= tick() - u406 then
+                            _ReplicatedStorage.Packages.Knit.Services.BallService.RE.Slide:FireServer()
+
+                            u406 = tick()
+                        end
+                    end
+                else
+                    _StatesController.SpeedBoost = 0
+
+                    u127:Stop()
+                    _Sound4:Stop()
+                    _Sound5:Stop()
+                    _Sound6:Stop()
+
+                    local v425, v426, v427 = ipairs(u394)
+
+                    while true do
+                        local v428
+
+                        v427, v428 = v425(v426, v427)
+
+                        if v427 == nil then
+                            break
+                        end
+
+                        local v429, v430, v431 = ipairs(v428:GetChildren())
+
+                        while true do
+                            local v432, v433 = v429(v430, v431)
+
+                            if v432 == nil then
+                                break
+                            end
+
+                            v431 = v432
+
+                            if v433:IsA('ParticleEmitter') then
+                                v433.Enabled = false
+                            end
+                        end
+
+                        _Debris:AddItem(v428, 2)
+                    end
+
+                    u402:Disconnect()
+                    u409:Disconnect()
+                end
+            end)
+
+            u187(u188[math.random(1, #u188)])
+        else
+            warn('Black Flow on cooldown!')
+        end
+    else
+        return
+    end
+end
+local function u512()
+    if u110 then
+        local v435 = tick()
+
+        if v435 - u114.KillLine >= u113.KillLine then
+            u132:Play()
+            _Sound7:Play()
+            _ReplicatedStorage.Packages.Knit.Services.BallService.RE.Shoot:FireServer(50)
+            _Sound8:Play()
+
+            if u160(0.6) then
+                u114.KillLine = v435
+
+                local v436 = u9:FindFirstChild('RightFoot') or u9:FindFirstChild('Right Leg')
+
+                if v436 then
+                    local u437 = game.ReplicatedStorage.Effects.BeinschussCutscene.CutsceneVFX.AryuSmash.Attachment:Clone()
+
+                    u437.Parent = v436
+
+                    local v438, v439, v440 = ipairs(u437:GetChildren())
+
+                    while true do
+                        local v441, v442 = v438(v439, v440)
+
+                        if v441 == nil then
+                            break
+                        end
+
+                        v440 = v441
+
+                        if v442:IsA('ParticleEmitter') then
+                            v442.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                            v442.Rate = v442.Rate * 3
+                            v442.Lifetime = NumberRange.new(v442.Lifetime.Min * 2, v442.Lifetime.Max * 2)
+                            v442.Size = NumberSequence.new({
+                                NumberSequenceKeypoint.new(0, v442.Size.Keypoints[1].Value * 2),
+                                NumberSequenceKeypoint.new(1, v442.Size.Keypoints[2].Value * 2),
+                            })
+
+                            v442:Emit(30)
+
+                            v442.Enabled = true
+                        end
+                    end
+
+                    task.delay(0.5, function()
+                        local v443 = u437
+                        local v444, v445, v446 = ipairs(v443:GetChildren())
+
+                        while true do
+                            local v447
+
+                            v446, v447 = v444(v445, v446)
+
+                            if v446 == nil then
+                                break
+                            end
+                            if v447:IsA('ParticleEmitter') then
+                                v447.Enabled = false
+                            end
+                        end
+
+                        u437:Destroy()
+                    end)
+
+                    local u448 = game.ReplicatedStorage.Effects.MagnusCutscene.CutsceneVFX.Root.emit:Clone()
+
+                    u448.Parent = v436
+
+                    local v449, v450, v451 = ipairs(u448:GetChildren())
+
+                    while true do
+                        local v452, v453 = v449(v450, v451)
+
+                        if v452 == nil then
+                            break
+                        end
+
+                        v451 = v452
+
+                        if v453:IsA('ParticleEmitter') then
+                            v453.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                            v453.Rate = v453.Rate * 3
+                            v453.Lifetime = NumberRange.new(v453.Lifetime.Min * 2, v453.Lifetime.Max * 2)
+                            v453.Size = NumberSequence.new({
+                                NumberSequenceKeypoint.new(0, v453.Size.Keypoints[1].Value * 2),
+                                NumberSequenceKeypoint.new(1, v453.Size.Keypoints[2].Value * 2),
+                            })
+
+                            v453:Emit(30)
+
+                            v453.Enabled = true
+                        end
+                    end
+
+                    task.delay(0.5, function()
+                        local v454 = u448
+                        local v455, v456, v457 = ipairs(v454:GetChildren())
+
+                        while true do
+                            local v458
+
+                            v457, v458 = v455(v456, v457)
+
+                            if v457 == nil then
+                                break
+                            end
+                            if v458:IsA('ParticleEmitter') then
+                                v458.Enabled = false
+                            end
+                        end
+
+                        u448:Destroy()
+                    end)
+
+                    local u459 = game.ReplicatedStorage.Effects.NELRin.RinCurveShot.Trail.Attachment:Clone()
+
+                    u459.Parent = v436
+
+                    local v460, v461, v462 = ipairs(u459:GetChildren())
+
+                    while true do
+                        local v463, v464 = v460(v461, v462)
+
+                        if v463 == nil then
+                            break
+                        end
+
+                        v462 = v463
+
+                        if v464:IsA('ParticleEmitter') then
+                            v464.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                            v464.Rate = v464.Rate * 5
+                            v464.Lifetime = NumberRange.new(v464.Lifetime.Min * 3, v464.Lifetime.Max * 3)
+                            v464.Size = NumberSequence.new({
+                                NumberSequenceKeypoint.new(0, v464.Size.Keypoints[1].Value * 3),
+                                NumberSequenceKeypoint.new(1, v464.Size.Keypoints[2].Value * 3),
+                            })
+
+                            v464:Emit(50)
+
+                            v464.Enabled = true
+                        end
+                    end
+
+                    task.delay(0.5, function()
+                        local v465 = u459
+                        local v466, v467, v468 = ipairs(v465:GetChildren())
+
+                        while true do
+                            local v469
+
+                            v468, v469 = v466(v467, v468)
+
+                            if v468 == nil then
+                                break
+                            end
+                            if v469:IsA('ParticleEmitter') then
+                                v469.Enabled = false
+                            end
+                        end
+
+                        u459:Destroy()
+                    end)
+
+                    local u470 = game.ReplicatedStorage.Effects.NELRin.DestructiveCrashShotFX.VFX.ChargeKick.Attachment:Clone()
+
+                    u470.Parent = v436
+
+                    local v471, v472, v473 = ipairs(u470:GetChildren())
+
+                    while true do
+                        local v474, v475 = v471(v472, v473)
+
+                        if v474 == nil then
+                            break
+                        end
+
+                        v473 = v474
+
+                        if v475:IsA('ParticleEmitter') then
+                            v475.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                            v475.Rate = v475.Rate * 5
+                            v475.Lifetime = NumberRange.new(v475.Lifetime.Min * 3, v475.Lifetime.Max * 3)
+                            v475.Size = NumberSequence.new({
+                                NumberSequenceKeypoint.new(0, v475.Size.Keypoints[1].Value * 3),
+                                NumberSequenceKeypoint.new(1, v475.Size.Keypoints[2].Value * 3),
+                            })
+
+                            v475:Emit(50)
+
+                            v475.Enabled = true
+                        end
+                    end
+
+                    task.delay(0.5, function()
+                        local v476 = u470
+                        local v477, v478, v479 = ipairs(v476:GetChildren())
+
+                        while true do
+                            local v480
+
+                            v479, v480 = v477(v478, v479)
+
+                            if v479 == nil then
+                                break
+                            end
+                            if v480:IsA('ParticleEmitter') then
+                                v480.Enabled = false
+                            end
+                        end
+
+                        u470:Destroy()
+                    end)
+                end
+
+                local v481 = u156()
+
+                if v481 then
+                    local _Position4 = v481.Position
+                    local _Unit4 = _CurrentCamera.CFrame.LookVector.Unit
+                    local v484 = _CurrentCamera.CFrame.RightVector * 35
+                    local u485 = _Position4 + _Unit4 * 100 + v484 + Vector3.new(0, 15, 0)
+                    local u486 = _Position4 + _Unit4 * 200
+                    local v487, v488, v489 = ipairs(v481:GetChildren())
+
+                    while true do
+                        local v490, v491 = v487(v488, v489)
+
+                        if v490 == nil then
+                            break
+                        end
+
+                        v489 = v490
+
+                        if v491:IsA('AlignPosition') then
+                            v491:Destroy()
+                        end
+                    end
+
+                    local _AlignPosition7 = Instance.new('AlignPosition')
+
+                    _AlignPosition7.MaxForce = 10000
+                    _AlignPosition7.Responsiveness = 250
+                    _AlignPosition7.Parent = v481
+
+                    local _Attachment13 = Instance.new('Attachment')
+
+                    _Attachment13.Parent = v481
+                    _AlignPosition7.Attachment0 = _Attachment13
+
+                    local _Attachment14 = Instance.new('Attachment')
+
+                    _Attachment14.Parent = workspace.Terrain
+                    _AlignPosition7.Attachment1 = _Attachment14
+
+                    local v495 = {
+                        game.ReplicatedStorage.Effects.NELRin.DestructiveCrashShotFX.VFX.ChargeKick.Attachment,
+                        game.ReplicatedStorage.Effects.NELRin.ANewToy.Environment.BallFX.w.VFX,
+                        game.ReplicatedStorage.Effects.NELRin.Impulse.SmokeRun.Attachment,
+                        game.ReplicatedStorage.Effects.NELRin.Impulse.SmokeRun.Attachment,
+                    }
+                    local v496, v497, v498 = ipairs(v495)
+                    local v499 = {}
+
+                    while true do
+                        local v500
+
+                        v498, v500 = v496(v497, v498)
+
+                        if v498 == nil then
+                            break
+                        end
+
+                        local v501 = v500:Clone()
+
+                        v501.Parent = v481
+
+                        local v502, v503, v504 = ipairs(v501:GetChildren())
+
+                        while true do
+                            local v505
+
+                            v504, v505 = v502(v503, v504)
+
+                            if v504 == nil then
+                                break
+                            end
+                            if v505:IsA('ParticleEmitter') then
+                                v505.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                                v505.Rate = v505.Rate * 6
+                                v505.Lifetime = NumberRange.new(v505.Lifetime.Min * 2, v505.Lifetime.Max * 2)
+                                v505.Size = NumberSequence.new({
+                                    NumberSequenceKeypoint.new(0, v505.Size.Keypoints[1].Value * 2),
+                                    NumberSequenceKeypoint.new(1, v505.Size.Keypoints[2].Value * 2),
+                                })
+
+                                v505:Emit(30)
+
+                                v505.Enabled = true
+                            end
+                        end
+
+                        table.insert(v499, v501)
+                        _Debris:AddItem(v501, 2.5)
+                    end
+
+                    local _Sound16 = Instance.new('Sound')
+
+                    _Sound16.SoundId = 'rbxassetid://133901064330793'
+                    _Sound16.Volume = 3
+                    _Sound16.Looped = true
+                    _Sound16.Parent = v481
+
+                    local v507 = _Sound16
+
+                    _Sound16.Play(v507)
+
+                    local u508 = tick()
+                    local u509 = (u486 - _Position4).Magnitude * 1.2 / 250
+                    local u510 = nil
+
+                    u510 = _RunService.Heartbeat:Connect(function()
+                        local v511 = (tick() - u508) / u509
+
+                        if v511 >= 1 then
+                            u510:Disconnect()
+                            _AlignPosition7:Destroy()
+                            _Attachment13:Destroy()
+                            _Attachment14:Destroy()
+                            _Sound16:Stop()
+                            _Sound16:Destroy()
+                        else
+                            _Attachment14.Position = (1 - v511) ^ 2 * _Position4 + 2 * (1 - v511) * v511 * u485 + v511 ^ 2 * u486
+                        end
+                    end)
+                end
+            else
+                warn('Ball not shot within time limit')
+            end
+
+            u187(u188[math.random(1, #u188)])
+        else
+            warn('Kill Line on cooldown!')
+        end
+    else
+        return
+    end
+end
+local function u567()
+    if u111 then
+        local v513 = tick()
+
+        if v513 - u114.SilentLink >= u113.SilentLink then
+            if u147 and u147.Character and u147.Character:FindFirstChild('HumanoidRootPart') then
+                u136:Play()
+                _ReplicatedStorage.Packages.Knit.Services.BallService.RE.Shoot:FireServer(50)
+                _Sound9:Play()
+
+                if u160(0.6) then
+                    u114.SilentLink = v513
+                    u146 = true
+
+                    local v514 = u9:FindFirstChild('RightFoot') or u9:FindFirstChild('Right Leg')
+
+                    if v514 then
+                        local u515 = game.ReplicatedStorage.Effects.NELRin.RinCurveShot.Trail.Attachment:Clone()
+
+                        u515.Parent = v514
+
+                        local v516, v517, v518 = ipairs(u515:GetChildren())
+
+                        while true do
+                            local v519
+
+                            v518, v519 = v516(v517, v518)
+
+                            if v518 == nil then
+                                break
+                            end
+                            if v519:IsA('ParticleEmitter') then
+                                v519.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                                v519.Rate = v519.Rate * 5
+                                v519.Lifetime = NumberRange.new(v519.Lifetime.Min * 3, v519.Lifetime.Max * 3)
+                                v519.Size = NumberSequence.new({
+                                    NumberSequenceKeypoint.new(0, v519.Size.Keypoints[1].Value * 3),
+                                    NumberSequenceKeypoint.new(1, v519.Size.Keypoints[2].Value * 3),
+                                })
+
+                                v519:Emit(50)
+
+                                v519.Enabled = true
+                            end
+                        end
+
+                        task.delay(0.5, function()
+                            local v520 = u515
+                            local v521, v522, v523 = ipairs(v520:GetChildren())
+
+                            while true do
+                                local v524
+
+                                v523, v524 = v521(v522, v523)
+
+                                if v523 == nil then
+                                    break
+                                end
+                                if v524:IsA('ParticleEmitter') then
+                                    v524.Enabled = false
+                                end
+                            end
+
+                            u515:Destroy()
+                        end)
+
+                        local u525 = game.ReplicatedStorage.Effects.NELRin.DestructiveCrashShotFX.VFX.ChargeKick.Attachment:Clone()
+
+                        u525.Parent = v514
+
+                        local v526, v527, v528 = ipairs(u525:GetChildren())
+
+                        while true do
+                            local v529
+
+                            v528, v529 = v526(v527, v528)
+
+                            if v528 == nil then
+                                break
+                            end
+                            if v529:IsA('ParticleEmitter') then
+                                v529.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                                v529.Rate = v529.Rate * 5
+                                v529.Lifetime = NumberRange.new(v529.Lifetime.Min * 3, v529.Lifetime.Max * 3)
+                                v529.Size = NumberSequence.new({
+                                    NumberSequenceKeypoint.new(0, v529.Size.Keypoints[1].Value * 3),
+                                    NumberSequenceKeypoint.new(1, v529.Size.Keypoints[2].Value * 3),
+                                })
+
+                                v529:Emit(50)
+
+                                v529.Enabled = true
+                            end
+                        end
+
+                        task.delay(0.5, function()
+                            local v530 = u525
+                            local v531, v532, v533 = ipairs(v530:GetChildren())
+
+                            while true do
+                                local v534
+
+                                v533, v534 = v531(v532, v533)
+
+                                if v533 == nil then
+                                    break
+                                end
+                                if v534:IsA('ParticleEmitter') then
+                                    v534.Enabled = false
+                                end
+                            end
+
+                            u525:Destroy()
+                        end)
+                    end
+
+                    local v535 = u156()
+
+                    if v535 then
+                        local _Position5 = v535.Position
+                        local _Unit5 = _CurrentCamera.CFrame.LookVector.Unit
+                        local v538 = _CurrentCamera.CFrame.RightVector * 35
+                        local u539 = _Position5 + _Unit5 * 100 + v538 + Vector3.new(0, 15, 0)
+                        local u540 = (u147.Character.HumanoidRootPart.Position - _Position5).Magnitude * 1.2 / 250
+                        local v541, v542, v543 = ipairs(v535:GetChildren())
+
+                        while true do
+                            local v544, v545 = v541(v542, v543)
+
+                            if v544 == nil then
+                                break
+                            end
+
+                            v543 = v544
+
+                            if v545:IsA('AlignPosition') then
+                                v545:Destroy()
+                            end
+                        end
+
+                        local _AlignPosition8 = Instance.new('AlignPosition')
+
+                        _AlignPosition8.MaxForce = 10000
+                        _AlignPosition8.Responsiveness = 250
+                        _AlignPosition8.Parent = v535
+
+                        local _Attachment15 = Instance.new('Attachment')
+
+                        _Attachment15.Parent = v535
+                        _AlignPosition8.Attachment0 = _Attachment15
+
+                        local _Attachment16 = Instance.new('Attachment')
+
+                        _Attachment16.Parent = workspace.Terrain
+                        _AlignPosition8.Attachment1 = _Attachment16
+
+                        local v549 = {
+                            game.ReplicatedStorage.Effects.NELRin.DestructiveCrashShotFX.VFX.ChargeKick.Attachment,
+                            game.ReplicatedStorage.Effects.NELRin.ANewToy.Environment.BallFX.w.VFX,
+                            game.ReplicatedStorage.Effects.NELRin.Impulse.SmokeRun.Attachment,
+                            game.ReplicatedStorage.Effects.NELRin.Impulse.SmokeRun.Attachment,
+                        }
+                        local v550, v551, v552 = ipairs(v549)
+                        local v553 = {}
+
+                        while true do
+                            local v554
+
+                            v552, v554 = v550(v551, v552)
+
+                            if v552 == nil then
+                                break
+                            end
+
+                            local v555 = v554:Clone()
+
+                            v555.Parent = v535
+
+                            local v556, v557, v558 = ipairs(v555:GetChildren())
+
+                            while true do
+                                local v559
+
+                                v558, v559 = v556(v557, v558)
+
+                                if v558 == nil then
+                                    break
+                                end
+                                if v559:IsA('ParticleEmitter') then
+                                    v559.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                                    v559.Rate = v559.Rate * 6
+                                    v559.Lifetime = NumberRange.new(v559.Lifetime.Min * 2, v559.Lifetime.Max * 2)
+                                    v559.Size = NumberSequence.new({
+                                        NumberSequenceKeypoint.new(0, v559.Size.Keypoints[1].Value * 2),
+                                        NumberSequenceKeypoint.new(1, v559.Size.Keypoints[2].Value * 2),
+                                    })
+
+                                    v559:Emit(30)
+
+                                    v559.Enabled = true
+                                end
+                            end
+
+                            table.insert(v553, v555)
+                            _Debris:AddItem(v555, 2.5)
+                        end
+
+                        local _Sound17 = Instance.new('Sound')
+
+                        _Sound17.SoundId = 'rbxassetid://133901064330793'
+                        _Sound17.Volume = 3
+                        _Sound17.Looped = true
+                        _Sound17.Parent = v535
+
+                        local v561 = _Sound17
+
+                        _Sound17.Play(v561)
+
+                        local u562 = tick()
+                        local u563 = nil
+
+                        u563 = _RunService.Heartbeat:Connect(function()
+                            if u147 and u147.Character and u147.Character:FindFirstChild('HumanoidRootPart') then
+                                local _Position6 = u147.Character.HumanoidRootPart.Position
+                                local v565 = tick() - u562
+                                local v566 = math.min(v565 / u540, 1)
+
+                                _Attachment16.Position = (1 - v566) ^ 2 * _Position5 + 2 * (1 - v566) * v566 * u539 + v566 ^ 2 * _Position6
+
+                                if v566 >= 1 then
+                                    u563:Disconnect()
+                                    _AlignPosition8:Destroy()
+                                    _Attachment15:Destroy()
+                                    _Attachment16:Destroy()
+                                    _Sound17:Stop()
+                                    _Sound17:Destroy()
+                                end
+                            else
+                                u563:Disconnect()
+                                _AlignPosition8:Destroy()
+                                _Attachment15:Destroy()
+                                _Attachment16:Destroy()
+                                _Sound17:Stop()
+                                _Sound17:Destroy()
+                            end
+                        end)
+                    end
+                else
+                    warn('Ball not shot within time limit')
+                end
+
+                u187(u188[math.random(1, #u188)])
+                task.delay(3, function()
+                    u146 = false
+                end)
+            else
+                warn('No marked teammate!')
+            end
+        else
+            warn('Silent Link on cooldown!')
+
+            return
+        end
+    else
+        return
+    end
+end
+local function u607()
+    if u112 then
+        local v568 = tick()
+
+        if v568 - u114.CrashIn >= u113.CrashIn then
+            local v569 = _Players
+            local v570, v571, v572 = ipairs(v569:GetPlayers())
+            local v573 = {}
+
+            while true do
+                local v574, v575 = v570(v571, v572)
+
+                if v574 == nil then
+                    break
+                end
+
+                v572 = v574
+
+                if v575 ~= _LocalPlayer and v575.Team ~= _LocalPlayer.Team then
+                    table.insert(v573, v575)
+                end
+            end
+
+            local _huge = math.huge
+            local v577, v578, v579 = ipairs(v573)
+            local u580 = nil
+
+            while true do
+                local v581
+
+                v579, v581 = v577(v578, v579)
+
+                if v579 == nil then
+                    break
+                end
+
+                local _Character2 = v581.Character
+
+                if _Character2 and _Character2:FindFirstChild('HumanoidRootPart') then
+                    local _Magnitude3 = (_Character2.HumanoidRootPart.Position - _HumanoidRootPart.Position).Magnitude
+
+                    if _Magnitude3 < 50 and _Magnitude3 < _huge then
+                        u580 = v581
+                        _huge = _Magnitude3
+                    end
+                end
+            end
+
+            if u580 then
+                u114.CrashIn = v568
+
+                local _BillboardGui3 = Instance.new('BillboardGui')
+
+                _BillboardGui3.Name = 'OpponentMark'
+                _BillboardGui3.AlwaysOnTop = true
+                _BillboardGui3.Size = UDim2.new(0, 50, 0, 50)
+                _BillboardGui3.StudsOffset = Vector3.new(0, 3, 0)
+                _BillboardGui3.Adornee = u580.Character:FindFirstChild('HumanoidRootPart')
+                _BillboardGui3.Parent = _LocalPlayer.PlayerGui
+
+                local _Frame8 = Instance.new('Frame')
+
+                _Frame8.Size = UDim2.new(0, 2, 0, 20)
+                _Frame8.Position = UDim2.new(0.5, -10, 0.5, -10)
+                _Frame8.Rotation = 45
+                _Frame8.BackgroundColor3 = Color3.fromRGB(0, 242, 255)
+                _Frame8.BorderSizePixel = 0
+                _Frame8.Parent = _BillboardGui3
+
+                local _UICorner17 = Instance.new('UICorner')
+
+                _UICorner17.CornerRadius = UDim.new(0, 2)
+                _UICorner17.Parent = _Frame8
+
+                local _Frame9 = Instance.new('Frame')
+
+                _Frame9.Size = UDim2.new(0, 2, 0, 20)
+                _Frame9.Position = UDim2.new(0.5, -10, 0.5, -10)
+                _Frame9.Rotation = -45
+                _Frame9.BackgroundColor3 = Color3.fromRGB(0, 242, 255)
+                _Frame9.BorderSizePixel = 0
+                _Frame9.Parent = _BillboardGui3
+
+                local _UICorner18 = Instance.new('UICorner')
+
+                _UICorner18.CornerRadius = UDim.new(0, 2)
+                _UICorner18.Parent = _Frame9
+
+                u139:Play()
+                _Sound10:Play()
+                _Sound11:Play()
+
+                local v589 = {
+                    game.ReplicatedStorage.Effects.CrowTheft.RunningFX.Attachment,
+                    game.ReplicatedStorage.Assets.Vfx.ChigiriRun.Attachment,
+                    game.ReplicatedStorage.Assets.Vfx.KingsDribble.RunPlr.Attachment,
+                    game.ReplicatedStorage.Effects.NELRin.DestructionDribble.SmokeRun.Attachment,
+                }
+                local v590, v591, v592 = ipairs(v589)
+
+                while true do
+                    local v593
+
+                    v592, v593 = v590(v591, v592)
+
+                    if v592 == nil then
+                        break
+                    end
+
+                    local v594 = v593:Clone()
+
+                    v594.Parent = _HumanoidRootPart
+
+                    local v595, v596, v597 = ipairs(v594:GetChildren())
+
+                    while true do
+                        local v598
+
+                        v597, v598 = v595(v596, v597)
+
+                        if v597 == nil then
+                            break
+                        end
+                        if v598:IsA('ParticleEmitter') then
+                            v598.Color = ColorSequence.new(Color3.fromRGB(0, 242, 255))
+                            v598.Rate = v598.Rate * 5
+                            v598.Lifetime = NumberRange.new(v598.Lifetime.Min * 3, v598.Lifetime.Max * 3)
+                            v598.Size = NumberSequence.new({
+                                NumberSequenceKeypoint.new(0, v598.Size.Keypoints[1].Value * 3),
+                                NumberSequenceKeypoint.new(1, v598.Size.Keypoints[2].Value * 3),
+                            })
+
+                            v598:Emit(50)
+
+                            v598.Enabled = true
+                        end
+                    end
+
+                    _Debris:AddItem(v594, 2)
+                end
+
+                local _AlignPosition9 = Instance.new('AlignPosition')
+
+                _AlignPosition9.MaxForce = 100000
+                _AlignPosition9.Responsiveness = 200
+                _AlignPosition9.Parent = _HumanoidRootPart
+
+                local _Attachment17 = Instance.new('Attachment', _HumanoidRootPart)
+
+                _AlignPosition9.Attachment0 = _Attachment17
+
+                local _Attachment18 = Instance.new('Attachment', u580.Character.HumanoidRootPart)
+
+                _AlignPosition9.Attachment1 = _Attachment18
+
+                local _AlignOrientation = Instance.new('AlignOrientation')
+
+                _AlignOrientation.MaxTorque = 10000
+                _AlignOrientation.Responsiveness = 200
+                _AlignOrientation.Attachment0 = _Attachment17
+                _AlignOrientation.Parent = _HumanoidRootPart
+
+                local u603 = 0.8
+                local u604 = tick()
+                local u605 = nil
+
+                u605 = _RunService.Heartbeat:Connect(function()
+                    if u580 and u580.Character and u580.Character:FindFirstChild('HumanoidRootPart') then
+                        local _HumanoidRootPart4 = u580.Character.HumanoidRootPart
+
+                        _AlignOrientation.CFrame = CFrame.lookAt(_HumanoidRootPart.Position, _HumanoidRootPart4.Position)
+
+                        if (_HumanoidRootPart4.Position - _HumanoidRootPart.Position).Magnitude <= 3 then
+                            _ReplicatedStorage.Packages.Knit.Services.BallService.RE.Slide:FireServer()
+                        end
+                        if u603 <= tick() - u604 then
+                            u605:Disconnect()
+                            _AlignPosition9:Destroy()
+                            _AlignOrientation:Destroy()
+                            _Attachment17:Destroy()
+                            _Attachment18:Destroy()
+                            _BillboardGui3:Destroy()
+                            u187(u188[math.random(1, #u188)])
+                        end
+                    else
+                        u605:Disconnect()
+                        _AlignPosition9:Destroy()
+                        _AlignOrientation:Destroy()
+                        _Attachment17:Destroy()
+                        _Attachment18:Destroy()
+                        _BillboardGui3:Destroy()
+                    end
+                end)
+            else
+                warn('No opponent within range!')
+            end
+        else
+            warn('Crash In on cooldown!')
+
+            return
+        end
+    else
+        return
+    end
+end
+
+local _Abilities3 = _LocalPlayer.PlayerGui:WaitForChild('InGameUI'):WaitForChild('Bottom'):WaitForChild('Abilities')
+local u609 = _Abilities3['1']:Clone()
+
+u609.Name = 'SharpBendButton'
+u609.Parent = _Abilities3
+u609.LayoutOrder = 1
+u609.Keybind.Text = 'R'
+u609.Timer.Text = 'Sharp Bend'
+u609.ActualTimer.Text = ''
+
+if u609:FindFirstChild('Cooldown') then
+    u609.Cooldown:Destroy()
+end
+
+u609.Visible = true
+
+v209(u609)
+
+local u610 = _Abilities3['1']:Clone()
+
+u610.Name = 'OrbitStepButton'
+u610.Parent = _Abilities3
+u610.LayoutOrder = 2
+u610.Keybind.Text = 'T'
+u610.Timer.Text = 'Orbit Step'
+u610.ActualTimer.Text = ''
+
+if u610:FindFirstChild('Cooldown') then
+    u610.Cooldown:Destroy()
+end
+
+u610.Visible = true
+
+v209(u610)
+
+local u611 = _Abilities3['1']:Clone()
+
+u611.Name = 'DeadFlickButton'
+u611.Parent = _Abilities3
+u611.LayoutOrder = 3
+u611.Keybind.Text = 'Z'
+u611.Timer.Text = 'Dead Flick'
+u611.ActualTimer.Text = ''
+
+if u611:FindFirstChild('Cooldown') then
+    u611.Cooldown:Destroy()
+end
+
+u611.Visible = true
+
+v209(u611)
+
+local u612 = _Abilities3['1']:Clone()
+
+u612.Name = 'CrashInButton'
+u612.Parent = _Abilities3
+u612.LayoutOrder = 4
+u612.Keybind.Text = 'Y'
+u612.Timer.Text = 'Crash In'
+u612.ActualTimer.Text = ''
+
+if u612:FindFirstChild('Cooldown') then
+    u612.Cooldown:Destroy()
+end
+
+u612.Visible = true
+
+v209(u612)
+
+local u613 = _Abilities3['1']:Clone()
+
+u613.Name = 'BlackFlowButton'
+u613.Parent = _Abilities3
+u613.LayoutOrder = 5
+u613.Keybind.Text = '1'
+u613.Timer.Text = 'Black Flow'
+u613.ActualTimer.Text = ''
+
+if u613:FindFirstChild('Cooldown') then
+    u613.Cooldown:Destroy()
+end
+
+u613.Visible = true
+
+v209(u613)
+
+local u614 = _Abilities3['1']:Clone()
+
+u614.Name = 'KillLineButton'
+u614.Parent = _Abilities3
+u614.LayoutOrder = 6
+u614.Keybind.Text = '2'
+u614.Timer.Text = 'Kill Line'
+u614.ActualTimer.Text = ''
+
+if u614:FindFirstChild('Cooldown') then
+    u614.Cooldown:Destroy()
+end
+
+u614.Visible = true
+
+v209(u614)
+
+local u615 = _Abilities3['1']:Clone()
+
+u615.Name = 'SilentLinkButton'
+u615.Parent = _Abilities3
+u615.LayoutOrder = 7
+u615.Keybind.Text = '3'
+u615.Timer.Text = 'Silent Link'
+u615.ActualTimer.Text = ''
+
+if u615:FindFirstChild('Cooldown') then
+    u615.Cooldown:Destroy()
+end
+
+u615.Visible = true
+
+v209(u615)
+
+local u616 = _Abilities3['1']:Clone()
+
+u616.Name = 'DestroyAbilitiesButton'
+u616.Parent = _Abilities3
+u616.LayoutOrder = 8
+u616.Keybind.Text = '9'
+u616.Timer.Text = 'Destroy Abilities'
+u616.ActualTimer.Text = ''
+
+if u616:FindFirstChild('Cooldown') then
+    u616.Cooldown:Destroy()
+end
+
+u616.Visible = true
+
+v209(u616)
+
+u609.Activated:Connect(u289)
+u610.Activated:Connect(u350)
+u611.Activated:Connect(u388)
+u612.Activated:Connect(u607)
+u613.Activated:Connect(u434)
+u614.Activated:Connect(u512)
+u615.Activated:Connect(u567)
+u616.Activated:Connect(u198)
+
+u115 = _UserInputService.InputBegan:Connect(function(p617, p618)
+    if not p618 then
+        if p617.KeyCode ~= Enum.KeyCode.R then
+            if p617.KeyCode ~= Enum.KeyCode.T then
+                if p617.KeyCode ~= Enum.KeyCode.Z then
+                    if p617.KeyCode ~= Enum.KeyCode.Y then
+                        if p617.KeyCode ~= Enum.KeyCode.One then
+                            if p617.KeyCode ~= Enum.KeyCode.Two then
+                                if p617.KeyCode ~= Enum.KeyCode.Three then
+                                    if p617.KeyCode == Enum.KeyCode.Nine then
+                                        u198()
+                                    end
+                                else
+                                    u567()
+                                end
+                            else
+                                u512()
+                            end
+                        else
+                            u434()
+                        end
+                    else
+                        u607()
+                    end
+                else
+                    u388()
+                end
+            else
+                u350()
+            end
+        else
+            u289()
+        end
+    end
+end)
+
+_LocalPlayer.CharacterAdded:Connect(function(p619)
+    u9 = p619
+    _Humanoid = u9:WaitForChild('Humanoid')
+    _HumanoidRootPart = u9:WaitForChild('HumanoidRootPart')
+    u118 = _Humanoid:LoadAnimation(_Animation)
+    u122 = _Humanoid:LoadAnimation(_Animation2)
+    u125 = _Humanoid:LoadAnimation(_Animation3)
+    u127 = _Humanoid:LoadAnimation(_Animation4)
+    u132 = _Humanoid:LoadAnimation(_Animation5)
+    u136 = _Humanoid:LoadAnimation(_Animation6)
+    u139 = _Humanoid:LoadAnimation(_Animation7)
+    _Sound.Parent = _HumanoidRootPart
+    _Sound2.Parent = _HumanoidRootPart
+    _Sound3.Parent = _HumanoidRootPart
+    _Sound4.Parent = _HumanoidRootPart
+    _Sound5.Parent = _HumanoidRootPart
+    _Sound6.Parent = _HumanoidRootPart
+    _Sound7.Parent = _HumanoidRootPart
+    _Sound8.Parent = _HumanoidRootPart
+    _Sound9.Parent = _HumanoidRootPart
+    _Sound10.Parent = _HumanoidRootPart
+    _Sound11.Parent = _HumanoidRootPart
+end)
+
+local function v635()
+    local v620 = tick()
+
+    if u609 and u609.Parent then
+        u609.Visible = u105
+
+        if u105 then
+            local v621 = u113.SharpBend - (v620 - u114.SharpBend)
+
+            if v621 > 0 then
+                local v622 = v621 / u113.SharpBend
+
+                u609.CooldownOverlay.Size = UDim2.new(1, 0, v622, 0)
+                u609.Timer.Text = string.format('CD: %.1f s', v621)
+            else
+                u609.CooldownOverlay.Size = UDim2.new(1, 0, 0, 0)
+                u609.Timer.Text = 'Sharp Bend'
+            end
+        end
+    end
+    if u610 and u610.Parent then
+        u610.Visible = u106
+
+        if u106 then
+            local v623 = u113.OrbitStep - (v620 - u114.OrbitStep)
+
+            if v623 > 0 then
+                local v624 = v623 / u113.OrbitStep
+
+                u610.CooldownOverlay.Size = UDim2.new(1, 0, v624, 0)
+                u610.Timer.Text = string.format('CD: %.1f s', v623)
+            else
+                u610.CooldownOverlay.Size = UDim2.new(1, 0, 0, 0)
+                u610.Timer.Text = 'Orbit Step'
+            end
+        end
+    end
+    if u611 and u611.Parent then
+        u611.Visible = u107
+
+        if u107 then
+            local v625 = u113.DeadFlick - (v620 - u114.DeadFlick)
+
+            if v625 > 0 then
+                local v626 = v625 / u113.DeadFlick
+
+                u611.CooldownOverlay.Size = UDim2.new(1, 0, v626, 0)
+                u611.Timer.Text = string.format('CD: %.1f s', v625)
+            else
+                u611.CooldownOverlay.Size = UDim2.new(1, 0, 0, 0)
+                u611.Timer.Text = 'Dead Flick'
+            end
+        end
+    end
+    if u612 and u612.Parent then
+        u612.Visible = u112
+
+        if u112 then
+            local v627 = u113.CrashIn - (v620 - u114.CrashIn)
+
+            if v627 > 0 then
+                local v628 = v627 / u113.CrashIn
+
+                u612.CooldownOverlay.Size = UDim2.new(1, 0, v628, 0)
+                u612.Timer.Text = string.format('CD: %.1f s', v627)
+            else
+                u612.CooldownOverlay.Size = UDim2.new(1, 0, 0, 0)
+                u612.Timer.Text = 'Crash In'
+            end
+        end
+    end
+    if u613 and u613.Parent then
+        u613.Visible = u108
+
+        if u108 then
+            local v629 = u113.BlackFlow - (v620 - u114.BlackFlow)
+
+            if v629 > 0 then
+                local v630 = v629 / u113.BlackFlow
+
+                u613.CooldownOverlay.Size = UDim2.new(1, 0, v630, 0)
+                u613.Timer.Text = string.format('CD: %.1f s', v629)
+            else
+                u613.CooldownOverlay.Size = UDim2.new(1, 0, 0, 0)
+                u613.Timer.Text = 'Black Flow'
+            end
+        end
+    end
+    if u614 and u614.Parent then
+        u614.Visible = u110
+
+        if u110 then
+            local v631 = u113.KillLine - (v620 - u114.KillLine)
+
+            if v631 > 0 then
+                local v632 = v631 / u113.KillLine
+
+                u614.CooldownOverlay.Size = UDim2.new(1, 0, v632, 0)
+                u614.Timer.Text = string.format('CD: %.1f s', v631)
+            else
+                u614.CooldownOverlay.Size = UDim2.new(1, 0, 0, 0)
+                u614.Timer.Text = 'Kill Line'
+            end
+        end
+    end
+    if u615 and u615.Parent then
+        u615.Visible = u111
+
+        if u111 then
+            local v633 = u113.SilentLink - (v620 - u114.SilentLink)
+
+            if v633 > 0 then
+                local v634 = v633 / u113.SilentLink
+
+                u615.CooldownOverlay.Size = UDim2.new(1, 0, v634, 0)
+                u615.Timer.Text = string.format('CD: %.1f s', v633)
+            else
+                u615.CooldownOverlay.Size = UDim2.new(1, 0, 0, 0)
+                u615.Timer.Text = 'Silent Link'
+            end
+        end
+    end
+    if u616 and u616.Parent then
+        u616.Visible = true
+        u616.Timer.Text = 'Destroy Abilities'
+    end
+end
+
+_RunService.Heartbeat:Connect(function()
+    if not u146 then
+        local v636 = _Players
+        local v637, v638, v639 = ipairs(v636:GetPlayers())
+        local v640 = {}
+
+        while true do
+            local v641
+
+            v639, v641 = v637(v638, v639)
+
+            if v639 == nil then
+                break
+            end
+            if v641 ~= _LocalPlayer and v641.Team == _LocalPlayer.Team then
+                table.insert(v640, v641)
+            end
+        end
+
+        local _huge2 = math.huge
+        local v643, v644, v645 = ipairs(v640)
+        local v646 = nil
+
+        while true do
+            local v647
+
+            v645, v647 = v643(v644, v645)
+
+            if v645 == nil then
+                break
+            end
+
+            local _Character3 = v647.Character
+
+            if _Character3 and _Character3:FindFirstChild('HumanoidRootPart') then
+                local v649, v650 = _CurrentCamera:WorldToViewportPoint(_Character3.HumanoidRootPart.Position)
+
+                if v650 then
+                    local _Magnitude4 = (Vector2.new(v649.X, v649.Y) - _CurrentCamera.ViewportSize / 2).Magnitude
+
+                    if _Magnitude4 < _huge2 then
+                        v646 = v647
+                        _huge2 = _Magnitude4
+                    end
+                end
+            end
+        end
+
+        u147 = v646
+
+        if u147 and u147.Character and u147.Character:FindFirstChild('HumanoidRootPart') then
+            local _HumanoidRootPart5 = u147.Character.HumanoidRootPart
+
+            _BillboardGui.Adornee = _HumanoidRootPart5
+
+            local _Magnitude5 = (_CurrentCamera.CFrame.Position - _HumanoidRootPart5.Position).Magnitude
+            local v654 = math.clamp(10 * 10 / _Magnitude5, 20, 100)
+
+            _BillboardGui.Size = UDim2.new(0, v654, 0, v654)
+            _BillboardGui.Enabled = true
+        else
+            _BillboardGui.Adornee = nil
+            _BillboardGui.Enabled = false
+        end
+    end
+end)
+
+u116 = _RunService.Heartbeat:Connect(v635)
+
+game.StarterGui:SetCore('SendNotification', {
+    Title = 'Welcome to Souls Hub',
+    Text = 'NEL Rin',
+    Duration = 5,
+})
+
+local _Style = _LocalPlayer.PlayerGui:WaitForChild('Style')
+local _StyleTxt = _Style:WaitForChild('BG'):WaitForChild('StyleTxt')
+local _Slot1 = _Style.BG.Slots.ScrollingFrame:WaitForChild('Slot1')
+local u658 = _Slot1:FindFirstChild('TextLabel') or _Slot1:FindFirstChild('Text')
+local _Desc = _Style.BG:WaitForChild('Desc')
+
+game:GetService('StarterGui'):SetCore('SendNotification', {
+    Title = 'NEL Rin Style Loaded!',
+    Text = 'Thank You For Using My Script:)',
+    Button1 = 'W',
+    Button2 = 'np',
+    Duration = 3,
+})
+spawn(function()
+    while task.wait() do
+        if _StyleTxt then
+            _StyleTxt.Text = 'NEL Rin'
+            _StyleTxt.TextColor3 = Color3.fromRGB(0, 242, 255)
+        end
+        if u658 then
+            u658.Text = 'NEL Rin'
+            u658.TextColor3 = Color3.fromRGB(0, 242, 255)
+        end
+        if _Desc then
+            _Desc.Text = 'Best Curve But Can He Defeat Isagis Plot Armor?'
+            _Desc.TextColor3 = Color3.fromRGB(0, 242, 255)
+        end
+        if _Slot1 then
+            _Slot1.BackgroundColor3 = Color3.fromRGB(0, 242, 255)
+        end
+    end
+end)
+game:GetService('StarterGui'):SetCore('SendNotification', {
+    Title = 'Join Souls Hub For Updates!',
+    Text = 'Rin Itoshi Destroyer Of The Game',
+    Button1 = 'W',
+    Button2 = 'W Dev',
+    Duration = 5,
+})
