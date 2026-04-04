@@ -248,7 +248,7 @@ local ABILITY_INFO = {
         {name = "QUICK STEP ◄►", key = "Q / E",cd = "1.2s", desc = "Instant side dodge left or right"},
         {name = "HOMING ATTACK",  key = "auto", cd = "—",    desc = "Chains to killers when Drop Dash fires"},
         {name = "TAUNT",          key = "G",    cd = "8s",   desc = "Say a random trash-talk line"},
-        {name = "SPEED MIRAGE",   key = "F",    cd = "20s",  desc = "Insane burst + mirage clones + TP forward"},
+        {name = "Heads-Up!",   key = "F",    cd = "20s",  desc = "Insane burst + mirage clones + TP forward"},
 }
 
 local function playSound(id, parent, volume)
