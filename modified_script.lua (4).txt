@@ -89,7 +89,7 @@ local function showUndertaleDialogue()
         expandTween:Play()
         expandTween.Completed:Wait()
 
-        local fullText = "* modified by jr, yumy is real owner my version of rework v1"
+        local fullText = "* modified by jr"
         local typingDelay = 0.045
 
         task.spawn(function()
@@ -227,13 +227,6 @@ local TAUNT_LINES = {
         "Aww, Cant keep up?",
         "Oh boy!",
         "Im gonna eat chilidogs after this!",
-        "Need a heads-start buddy?",
-        "Are you sure your fit to be called a "Exe"?",
-        "when i see you, its like the time slows down!",
-        "I think your not eating enough chilidogs!",
-        "Even if i allowed you to get a head-start i would still beat you at ease.",
-        "Show your Best!",
-        "fun fact: yumy is the actual owner i just modified this script so w owner.",
 }
 
 -- Speed Mirage state
@@ -241,9 +234,9 @@ local isMirageActive = false
 local mirageCooldown = false
 local MIRAGE_COOLDOWN = 20
 local mirageCdLabel = nil
-local MIRAGE_SPEED = 190
+local MIRAGE_SPEED = 290
 local MIRAGE_DURATION = 1.8
-local MIRAGE_TELEPORT = 64
+local MIRAGE_TELEPORT = 85
 
 -- Help panel state
 local helpPanelGui = nil
@@ -251,11 +244,11 @@ local helpPanelOpen = false
 local ABILITY_INFO = {
         {name = "INDICATOR",      key = "Y",    cd = "5s",   desc = "Ping killers nearby"},
         {name = "SHARP EYE",      key = "T",    cd = "25s",  desc = "See killers through walls"},
-        {name = "DRIFT MODE",     key = "T×2",  cd = "—",    desc = "Double-tap Sharp Eye: grip corners at speed makes you look cool too"},
-        {name = "QUICK STEP ◄►", key = "Q / E",cd = "1.2s", desc = "Instant side dodge left or right, also helps you to dodge EXES."},
+        {name = "DRIFT MODE",     key = "T×2",  cd = "—",    desc = "Double-tap Sharp Eye: grip corners at speed"},
+        {name = "QUICK STEP ◄►", key = "Q / E",cd = "1.2s", desc = "Instant side dodge left or right"},
         {name = "HOMING ATTACK",  key = "auto", cd = "—",    desc = "Chains to killers when Drop Dash fires"},
         {name = "TAUNT",          key = "G",    cd = "8s",   desc = "Say a random trash-talk line"},
-        {name = "Heads-Up!",   key = "F",    cd = "20s",  desc = "Insane burst + Unfair Heads Start + TP forward"},
+        {name = "SPEED MIRAGE",   key = "F",    cd = "20s",  desc = "Insane burst + mirage clones + TP forward"},
 }
 
 local function playSound(id, parent, volume)
