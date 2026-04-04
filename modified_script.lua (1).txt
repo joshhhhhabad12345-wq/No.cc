@@ -89,7 +89,7 @@ local function showUndertaleDialogue()
         expandTween:Play()
         expandTween.Completed:Wait()
 
-        local fullText = "* modified by jr"
+        local fullText = "* modified by jr. and i added 1 ability aswell i reduced the slippery run its not that slippery now i also added dialogues only on dropdash and the custom ability called Hedgehogs Sharp Eye"
         local typingDelay = 0.045
 
         task.spawn(function()
