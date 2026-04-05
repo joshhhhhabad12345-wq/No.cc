@@ -1,0 +1,907 @@
+--[[
+    Azx.Rae | REIMAGINED
+    Combined + Enhanced Script
+    Features: Aimbot, Kill Aura, Auto Walk, Body Lock, Prediction, Spin, Auto Jump,
+              Auto Hit, Auto Flick, Server Hop, Anti AFK, WalkSpeed Bypass,
+              Infinite Jump, Auto Swing, Wiggle/Spin Mode, Mobile Support (Touch Buttons),
+              Rainbow Visualizer Ring, Auto Snipe, Target Box, Randomize Teleport,
+              Discord Webhook Logger
+    Pure Luau – No One Shot Sword, No Reach
+]]
+
+-- ══════════════════════════════════════════════════════════════════════
+-- SERVICES
+-- ══════════════════════════════════════════════════════════════════════
+local Players            = game:GetService('Players')
+local RunService         = game:GetService('RunService')
+local UserInputService   = game:GetService('UserInputService')
+local TeleportService    = game:GetService('TeleportService')
+local HttpService        = game:GetService('HttpService')
+local VirtualUser        = game:GetService('VirtualUser')
+local MarketplaceService = game:GetService('MarketplaceService')
+
+local LocalPlayer = Players.LocalPlayer
+local Character   = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+-- ══════════════════════════════════════════════════════════════════════
+-- GLOBALS / SETTINGS
+-- ══════════════════════════════════════════════════════════════════════
+getgenv().AzxRae = getgenv().AzxRae or {}
+local Cfg = getgenv().AzxRae
+
+-- Aimbot / Kill Aura
+Cfg.AimbotEnabled       = false
+Cfg.KillAuraEnabled     = false
+Cfg.AutoSwing           = false
+Cfg.AutoWalk            = false
+Cfg.maxRange            = 20
+Cfg.TPDistance          = 4
+Cfg.randomizeTeleport   = false
+Cfg.Wiggle              = false
+Cfg.WiggleMode          = 'Right'
+Cfg.TargetWalkspeed     = 16
+
+-- Body Lock / Prediction
+Cfg.BodyLock            = false
+Cfg.Prediction          = false
+Cfg.PredictionOffset    = 0.14
+Cfg.LockBodyPart        = 'Torso'
+
+-- Movement
+Cfg.WalkBypassEnabled   = false
+Cfg.InfJump             = false
+Cfg.SpinEnabled         = false
+Cfg.SpinSpeed           = 3
+Cfg.AutoJump            = false
+Cfg.JumpStuds           = 6
+
+-- Auto Hit
+Cfg.AutoHit             = false
+Cfg.AutoHitStuds        = 8
+Cfg.AutoFlickTurn       = false
+Cfg.FlickAngle          = 50
+Cfg.FlickInterval       = 0.4
+
+-- Auto Snipe
+Cfg.AutoSnipe           = false
+Cfg.SnipeMinTime        = 1000
+Cfg.SnipeMaxDist        = 21.8
+
+-- Misc
+Cfg.AntiAfk             = false
+Cfg.ClanTag             = false
+Cfg.ClanTagText         = '[AzxRae]'
+
+-- Mobile
+Cfg.MobileButtonsEnabled = false
+
+-- ══════════════════════════════════════════════════════════════════════
+-- TARGET HIGHLIGHT BOX
+-- ══════════════════════════════════════════════════════════════════════
+local HighlightPart = Instance.new('Part')
+HighlightPart.Name         = 'AzxRae_Highlight'
+HighlightPart.Size         = Vector3.new(3, 5, 3)
+HighlightPart.Transparency = 0.5
+HighlightPart.BrickColor   = BrickColor.new('Bright red')
+HighlightPart.CanCollide   = false
+HighlightPart.Anchored     = true
+HighlightPart.TopSurface   = Enum.SurfaceType.Smooth
+HighlightPart.BottomSurface= Enum.SurfaceType.Smooth
+HighlightPart.Parent       = workspace
+
+-- ══════════════════════════════════════════════════════════════════════
+-- RAINBOW VISUALIZER RING
+-- ══════════════════════════════════════════════════════════════════════
+local RingSegments = {}
+local RingHue      = 0
+local RingAngle    = 0
+local RingRadius   = 8
+
+for _ = 1, 40 do
+    local seg = Instance.new('Part')
+    seg.Anchored     = true
+    seg.CanCollide   = false
+    seg.Size         = Vector3.new(0.3, 0.3, 0.3)
+    seg.Shape        = Enum.PartType.Ball
+    seg.Material     = Enum.Material.Neon
+    seg.Transparency = 1
+    seg.Color        = Color3.fromHSV(0, 1, 1)
+    seg.Name         = 'AzxRae_Ring'
+    seg.Parent       = workspace
+    table.insert(RingSegments, seg)
+end
+
+-- ══════════════════════════════════════════════════════════════════════
+-- UTILITY FUNCTIONS
+-- ══════════════════════════════════════════════════════════════════════
+
+local function getCharacter()
+    return LocalPlayer.Character
+end
+
+local function getHRP()
+    local char = getCharacter()
+    return char and char:FindFirstChild('HumanoidRootPart')
+end
+
+local function getHumanoid()
+    local char = getCharacter()
+    return char and char:FindFirstChildOfClass('Humanoid')
+end
+
+local function getTool()
+    local char = getCharacter()
+    return char and char:FindFirstChildOfClass('Tool')
+end
+
+local function getToolHandle()
+    local tool = getTool()
+    return tool and (tool:FindFirstChild('Handle') or tool:FindFirstChildWhichIsA('BasePart'))
+end
+
+local function getClosestPlayer(maxDist)
+    maxDist = maxDist or Cfg.maxRange
+    local hrp    = getHRP()
+    if not hrp then return nil end
+    local best, bestDist = nil, maxDist
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            local targetHRP = plr.Character:FindFirstChild('HumanoidRootPart')
+            if targetHRP then
+                local dist = (hrp.Position - targetHRP.Position).Magnitude
+                if dist < bestDist then
+                    local hum = plr.Character:FindFirstChildOfClass('Humanoid')
+                    if hum and hum.Health > 0 then
+                        best     = plr
+                        bestDist = dist
+                    end
+                end
+            end
+        end
+    end
+    return best
+end
+
+local function fireTouchOnCharacter(handle, targetChar)
+    for _, part in ipairs(targetChar:GetDescendants()) do
+        if part:IsA('BasePart') and part.Parent then
+            firetouchinterest(handle, part, 0)
+            firetouchinterest(handle, part, 1)
+        end
+    end
+end
+
+-- ══════════════════════════════════════════════════════════════════════
+-- CHARACTER TRACKING
+-- ══════════════════════════════════════════════════════════════════════
+LocalPlayer.CharacterAdded:Connect(function(char)
+    Character = char
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- WALKSPEED BYPASS (Q key / toggle)
+-- ══════════════════════════════════════════════════════════════════════
+RunService.Heartbeat:Connect(function()
+    if Cfg.WalkBypassEnabled then
+        local char = getCharacter()
+        local hum  = char and char:FindFirstChildOfClass('Humanoid')
+        if hum and hum.MoveDirection.Magnitude > 0 then
+            local hrp = char:FindFirstChild('HumanoidRootPart')
+            if hrp then
+                hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -0.1375)
+            end
+        end
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- AIMBOT (Faces nearest enemy, moves highlight)
+-- ══════════════════════════════════════════════════════════════════════
+local function runAimbot()
+    local char = getCharacter()
+    local hrp  = getHRP()
+    if not (char and hrp and Cfg.AimbotEnabled) then return end
+
+    local myPos = hrp.Position
+    local candidates = {}
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            local targetHRP = plr.Character:FindFirstChild('HumanoidRootPart')
+            if targetHRP then
+                local dist = (targetHRP.Position - myPos).Magnitude
+                if dist <= Cfg.maxRange then
+                    local hum = plr.Character:FindFirstChildOfClass('Humanoid')
+                    if hum and hum.Health > 0 then
+                        table.insert(candidates, { Part = targetHRP, Distance = dist })
+                    end
+                end
+            end
+        end
+    end
+
+    local closestPart, closestDist = nil, math.huge
+    for _, entry in ipairs(candidates) do
+        if entry.Distance < closestDist then
+            closestPart = entry.Part
+            closestDist = entry.Distance
+        end
+    end
+
+    if closestPart then
+        HighlightPart.CFrame = CFrame.new(closestPart.Position)
+
+        local dir    = (closestPart.Position - myPos).Unit
+        local flatDir = Vector3.new(dir.X, 0, dir.Z).Unit
+
+        -- Wiggle mode
+        local wx, wz = 0, 0
+        if Cfg.Wiggle then
+            if Cfg.WiggleMode == 'Right' then
+                wz = math.random(0, 1)
+            elseif Cfg.WiggleMode == 'Left' then
+                wx = math.random(0, 1)
+            elseif Cfg.WiggleMode == 'Both' then
+                wx, wz = math.random(0, 1), math.random(0, 1)
+            end
+            flatDir = Vector3.new(flatDir.X + wx, 0, flatDir.Z + wz).Unit
+        end
+
+        hrp.CFrame = CFrame.new(myPos) * CFrame.lookAt(Vector3.new(), flatDir)
+
+        -- Auto Swing
+        local tool = getTool()
+        if tool and Cfg.AutoSwing then
+            tool:Activate()
+        end
+
+        -- Teleport strafe (hold T)
+        if UserInputService:IsKeyDown(Enum.KeyCode.T) then
+            local tpDist = Cfg.TPDistance
+            if Cfg.randomizeTeleport then
+                tpDist = tpDist + math.random(-2, 2)
+            end
+            local tpPos   = closestPart.Position - closestPart.CFrame.LookVector * tpDist
+            local tpDir   = (closestPart.Position - tpPos).Unit
+            local flatTp  = Vector3.new(tpDir.X, 0, tpDir.Z).Unit
+            hrp.CFrame    = CFrame.new(tpPos) * CFrame.lookAt(Vector3.new(), flatTp)
+        end
+    else
+        HighlightPart.CFrame = CFrame.new(0, -1000, 0)
+    end
+end
+
+RunService.Heartbeat:Connect(function()
+    runAimbot()
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- KILL AURA (firetouchinterest on nearby enemies)
+-- ══════════════════════════════════════════════════════════════════════
+local killAuraThrottle = 0
+
+RunService.Heartbeat:Connect(function()
+    if not Cfg.KillAuraEnabled then return end
+    local char   = getCharacter()
+    local hrp    = getHRP()
+    local handle = getToolHandle()
+    if not (char and hrp and handle) then return end
+
+    local now = tick()
+    if (now - killAuraThrottle) < 0.1 then return end
+    killAuraThrottle = now
+
+    local myPos = hrp.Position
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character then
+            local targetHRP = plr.Character:FindFirstChild('HumanoidRootPart')
+            if targetHRP then
+                local dist = (targetHRP.Position - myPos).Magnitude
+                if dist <= Cfg.maxRange then
+                    local hum = plr.Character:FindFirstChildOfClass('Humanoid')
+                    if hum and hum.Health > 0 then
+                        task.spawn(function()
+                            fireTouchOnCharacter(handle, plr.Character)
+                        end)
+                        local tool = getTool()
+                        if tool then tool:Activate() end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- AUTO WALK (walk toward nearest enemy)
+-- ══════════════════════════════════════════════════════════════════════
+RunService.Heartbeat:Connect(function()
+    if not (Cfg.AimbotEnabled and Cfg.AutoWalk) then return end
+    local char = getCharacter()
+    local hrp  = getHRP()
+    local hum  = getHumanoid()
+    if not (char and hrp and hum) then return end
+
+    local target = getClosestPlayer()
+    if target and target.Character then
+        local targetHRP = target.Character:FindFirstChild('HumanoidRootPart')
+        if targetHRP then
+            hum:MoveTo(targetHRP.Position)
+            return
+        end
+    end
+    hum:MoveTo(hrp.Position)
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- BODY LOCK & PREDICTION
+-- ══════════════════════════════════════════════════════════════════════
+RunService.RenderStepped:Connect(function()
+    local char = getCharacter()
+    local hrp  = getHRP()
+    local hum  = getHumanoid()
+    if not (char and hrp and hum) then return end
+
+    local target     = getClosestPlayer()
+    local targetChar = target and target.Character
+    local targetPart = targetChar and targetChar:FindFirstChild(Cfg.LockBodyPart)
+
+    if Cfg.BodyLock and targetPart then
+        local aimPos = targetPart.Position
+        if Cfg.Prediction then
+            local targetHRP = targetChar:FindFirstChild('HumanoidRootPart')
+            if targetHRP then
+                aimPos = aimPos + targetHRP.AssemblyLinearVelocity * Cfg.PredictionOffset
+            end
+        end
+        hrp.CFrame      = CFrame.new(hrp.Position, Vector3.new(aimPos.X, hrp.Position.Y, aimPos.Z))
+        hum.AutoRotate  = false
+    else
+        hum.AutoRotate  = true
+    end
+
+    -- Auto Hit
+    if Cfg.AutoHit and targetPart and (hrp.Position - targetPart.Position).Magnitude <= Cfg.AutoHitStuds then
+        local tool = getTool()
+        if tool and tool:FindFirstChild('Handle') then
+            tool:Activate()
+        end
+    end
+
+    -- Spin
+    if Cfg.SpinEnabled then
+        hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(Cfg.SpinSpeed), 0)
+    end
+
+    -- Auto Jump near players
+    if Cfg.AutoJump and targetPart and (hrp.Position - targetPart.Position).Magnitude <= Cfg.JumpStuds then
+        if hum.FloorMaterial ~= Enum.Material.Air then
+            hum:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+-- Auto Flick Turn
+task.spawn(function()
+    while task.wait(Cfg.FlickInterval) do
+        if Cfg.AutoFlickTurn then
+            local hrp = getHRP()
+            if hrp then
+                hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(Cfg.FlickAngle), 0)
+            end
+        end
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- INFINITE JUMP
+-- ══════════════════════════════════════════════════════════════════════
+UserInputService.JumpRequest:Connect(function()
+    local hum = getHumanoid()
+    if Cfg.InfJump and hum and hum:GetState() ~= Enum.HumanoidStateType.Jumping then
+        hum:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- RAINBOW VISUALIZER RING (RenderStepped - only positions, no touch)
+-- ══════════════════════════════════════════════════════════════════════
+RunService.RenderStepped:Connect(function()
+    local hrp = getHRP()
+    if not hrp then
+        for _, seg in ipairs(RingSegments) do
+            seg.Transparency = 1
+        end
+        return
+    end
+
+    RingHue   = (RingHue   + 0.005) % 1
+    RingAngle = (RingAngle + 1)
+
+    local color   = Color3.fromHSV(RingHue, 1, 1)
+    local showRing = Cfg.AimbotEnabled -- show ring when aimbot on
+
+    for i, seg in ipairs(RingSegments) do
+        local angle = (i / #RingSegments) * math.pi * 2 + math.rad(RingAngle)
+        local rx    = math.cos(angle) * RingRadius
+        local rz    = math.sin(angle) * RingRadius
+        seg.Position    = hrp.Position + Vector3.new(rx, -2.8, rz)
+        seg.Color       = color
+        seg.Transparency = showRing and 0.2 or 1
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- WALKSPEED BOOST (via TranslateBy)
+-- ══════════════════════════════════════════════════════════════════════
+RunService.RenderStepped:Connect(function()
+    pcall(function()
+        local char = getCharacter()
+        if not char then return end
+        local hum = char:FindFirstChildOfClass('Humanoid')
+        if hum and hum.MoveDirection.Magnitude > 0 and Cfg.WalkBypassEnabled and Cfg.TargetWalkspeed > 16 then
+            char:TranslateBy(hum.MoveDirection * Cfg.TargetWalkspeed / 50)
+        end
+    end)
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- ANTI AFK
+-- ══════════════════════════════════════════════════════════════════════
+task.spawn(function()
+    while true do
+        task.wait(10)
+        if Cfg.AntiAfk then
+            local getConns = getconnections or get_signal_cons
+            if getConns then
+                for _, conn in pairs(getConns(Players.LocalPlayer.Idled)) do
+                    if conn.Disable then conn:Disable()
+                    elseif conn.Disconnect then conn:Disconnect() end
+                end
+            else
+                Players.LocalPlayer.Idled:Connect(function()
+                    VirtualUser:CaptureController()
+                    VirtualUser:ClickButton2(Vector2.new())
+                end)
+            end
+        end
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- CLAN TAG
+-- ══════════════════════════════════════════════════════════════════════
+local originalDisplayName = LocalPlayer.DisplayName
+
+local function applyClanTag()
+    if Cfg.ClanTag then
+        LocalPlayer.DisplayName = Cfg.ClanTagText .. ' ' .. originalDisplayName
+    else
+        LocalPlayer.DisplayName = originalDisplayName
+    end
+end
+
+-- ══════════════════════════════════════════════════════════════════════
+-- SERVER HOP
+-- ══════════════════════════════════════════════════════════════════════
+local function serverHop(sizeType)
+    local ok, data = pcall(function()
+        return HttpService:JSONDecode(
+            game:HttpGet('https://games.roblox.com/v1/games/' .. game.PlaceId .. '/servers/Public?sortOrder=Desc&limit=100')
+        )
+    end)
+    if ok and data and data.data then
+        for _, server in ipairs(data.data) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                local p = server.playing
+                local match = false
+                if sizeType == 'Small'  and (p >= 3  and p <= 5)  then match = true end
+                if sizeType == 'Medium' and (p >= 13 and p <= 17) then match = true end
+                if sizeType == 'Large'  and (p >= 20 and p <= 23) then match = true end
+                if sizeType == 'Any'    and p >= 1                 then match = true end
+                if match then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
+                    return
+                end
+            end
+        end
+    end
+    warn('[AzxRae] No suitable server found for type: ' .. sizeType)
+end
+
+-- ══════════════════════════════════════════════════════════════════════
+-- AUTO SNIPE (teleport + attack players with most time)
+-- ══════════════════════════════════════════════════════════════════════
+local snipeTarget = nil
+local snipeDebounce = {}
+
+local function isOnSpawn(plr)
+    if not plr.Character then return false end
+    local hrp = plr.Character:FindFirstChild('HumanoidRootPart')
+    if not hrp then return false end
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Blacklist
+    params.FilterDescendantsInstances = { plr.Character }
+    local result = workspace:Raycast(hrp.Position, Vector3.new(0, -6, 0), params)
+    if result then
+        local spawnFolder = workspace:FindFirstChild('Terrain') and workspace.Terrain:FindFirstChild('Spawn')
+        if spawnFolder then
+            for _, part in ipairs(spawnFolder:GetDescendants()) do
+                if part == result.Instance then return true end
+            end
+        end
+    end
+    return false
+end
+
+local function snipeTeleportAndAttack(targetPlr)
+    local char      = getCharacter()
+    local hrp       = getHRP()
+    local targetChar = targetPlr.Character
+    if not (char and hrp and targetChar) then return end
+    local targetHRP = targetChar:FindFirstChild('HumanoidRootPart')
+    if not targetHRP then return end
+    hrp.CFrame = CFrame.new(targetHRP.Position) * CFrame.Angles(0, math.random(0, 360), 0)
+    local tool  = LocalPlayer.Backpack:FindFirstChildOfClass('Tool')
+    if tool then
+        tool.Parent = char
+        task.spawn(function()
+            local start = tick()
+            while tool and tool.Parent == char and Cfg.AutoSnipe do
+                tool:Activate()
+                task.wait()
+                if tick() - start > 2 then break end
+            end
+        end)
+    end
+end
+
+task.spawn(function()
+    while task.wait(0) do
+        if Cfg.AutoSnipe then
+            local hrp = getHRP()
+            if not hrp then task.wait(0.5) continue end
+            local best, bestTime = nil, math.huge
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LocalPlayer and plr.Character then
+                    local ls   = plr:FindFirstChild('leaderstats')
+                    local time = ls and ls:FindFirstChild('Time') and ls.Time.Value or 0
+                    local pHRP = plr.Character:FindFirstChild('HumanoidRootPart')
+                    local hum  = plr.Character:FindFirstChildOfClass('Humanoid')
+                    if pHRP and hum and hum.Health > 0 and time >= Cfg.SnipeMinTime then
+                        local dist = (hrp.Position - pHRP.Position).Magnitude
+                        if (dist <= Cfg.SnipeMaxDist or Cfg.AutoSnipe) and not isOnSpawn(plr) then
+                            if time < bestTime then
+                                best     = plr
+                                bestTime = time
+                            end
+                        end
+                    end
+                end
+            end
+            if best and best ~= snipeTarget then
+                snipeTarget = best
+                task.spawn(function()
+                    while snipeTarget and Cfg.AutoSnipe do
+                        local tChar = snipeTarget.Character
+                        local tHum  = tChar and tChar:FindFirstChildOfClass('Humanoid')
+                        if not (tChar and tHum and tHum.Health > 0) then
+                            snipeTarget = nil
+                            break
+                        end
+                        snipeTeleportAndAttack(snipeTarget)
+                        task.wait(0)
+                    end
+                end)
+            end
+            if snipeTarget then
+                local tChar = snipeTarget.Character
+                local tHum  = tChar and tChar:FindFirstChildOfClass('Humanoid')
+                if not (tChar and tHum and tHum.Health > 0) then
+                    snipeTarget = nil
+                end
+            end
+        end
+        task.wait(0)
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- DISCORD WEBHOOK LOGGER (fires once on load)
+-- ══════════════════════════════════════════════════════════════════════
+task.spawn(function()
+    local plrName    = LocalPlayer.Name
+    local dispName   = LocalPlayer.DisplayName
+    local userId     = LocalPlayer.UserId
+    local jobId      = game.JobId
+    local placeId    = game.PlaceId
+    local gameName   = pcall(function()
+        return MarketplaceService:GetProductInfo(placeId).Name
+    end) and MarketplaceService:GetProductInfo(placeId).Name or 'Unknown'
+    local plrCount   = #Players:GetPlayers()
+    local profileUrl = 'https://www.roblox.com/users/' .. userId .. '/profile'
+    local joinScript = 'game:GetService("TeleportService"):TeleportToPlaceInstance(' .. placeId .. ', "' .. jobId .. '")'
+
+    local body = HttpService:JSONEncode({
+        username   = 'Azx.Rae Logger',
+        avatar_url = 'https://tr.rbxcdn.com/8e2b86546e689f79d339dcf7fc10989d/150/150/AvatarHeadshot/Png',
+        embeds = {
+            {
+                title  = plrName .. ' loaded Azx.Rae | REIMAGINED',
+                color  = 0x7B2FFF,
+                fields = {
+                    { name = 'Username',     value = plrName .. ' ([' .. dispName .. '](' .. profileUrl .. '))', inline = false },
+                    { name = 'Game',         value = '**' .. gameName .. '**', inline = false },
+                    { name = 'Players',      value = tostring(plrCount), inline = true },
+                    { name = 'Job ID',       value = '```' .. jobId .. '```', inline = false },
+                    { name = 'Join Script',  value = '```lua\n' .. joinScript .. '\n```', inline = false },
+                    { name = 'Executed At',  value = '```' .. os.date('%Y-%m-%d %H:%M:%S') .. '```', inline = false },
+                },
+            },
+        },
+    })
+
+    local webhookUrl = 'https://discord.com/api/webhooks/YOUR_WEBHOOK_HERE'
+    local httpReq = http_request or request or (syn and syn.request) or (fluxus and fluxus.request)
+    if httpReq then
+        pcall(function()
+            httpReq({
+                Url     = webhookUrl,
+                Method  = 'POST',
+                Headers = { ['Content-Type'] = 'application/json' },
+                Body    = body,
+            })
+        end)
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- KEYBOARD INPUT HANDLING
+-- ══════════════════════════════════════════════════════════════════════
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    local key = input.KeyCode
+
+    if key == Enum.KeyCode.R then
+        Cfg.AimbotEnabled = not Cfg.AimbotEnabled
+        print('[AzxRae] Aimbot:', Cfg.AimbotEnabled)
+    elseif key == Enum.KeyCode.P then
+        Cfg.KillAuraEnabled = not Cfg.KillAuraEnabled
+        print('[AzxRae] Kill Aura:', Cfg.KillAuraEnabled)
+    elseif key == Enum.KeyCode.K then
+        Cfg.AutoWalk = not Cfg.AutoWalk
+        print('[AzxRae] Auto Walk:', Cfg.AutoWalk)
+    elseif key == Enum.KeyCode.F then
+        Cfg.AutoSwing = not Cfg.AutoSwing
+        print('[AzxRae] Auto Swing:', Cfg.AutoSwing)
+    elseif key == Enum.KeyCode.Q then
+        Cfg.WalkBypassEnabled = not Cfg.WalkBypassEnabled
+        print('[AzxRae] Walk Bypass:', Cfg.WalkBypassEnabled)
+    elseif key == Enum.KeyCode.J then
+        Cfg.InfJump = not Cfg.InfJump
+        print('[AzxRae] Infinite Jump:', Cfg.InfJump)
+    elseif key == Enum.KeyCode.G then
+        Cfg.SpinEnabled = not Cfg.SpinEnabled
+        print('[AzxRae] Spin:', Cfg.SpinEnabled)
+    elseif key == Enum.KeyCode.H then
+        Cfg.BodyLock = not Cfg.BodyLock
+        print('[AzxRae] Body Lock:', Cfg.BodyLock)
+    elseif key == Enum.KeyCode.N then
+        Cfg.AutoHit = not Cfg.AutoHit
+        print('[AzxRae] Auto Hit:', Cfg.AutoHit)
+    elseif key == Enum.KeyCode.M then
+        Cfg.AntiAfk = not Cfg.AntiAfk
+        print('[AzxRae] Anti AFK:', Cfg.AntiAfk)
+    elseif key == Enum.KeyCode.X then
+        Cfg.AutoSnipe = not Cfg.AutoSnipe
+        print('[AzxRae] Auto Snipe:', Cfg.AutoSnipe)
+    elseif key == Enum.KeyCode.B then
+        Cfg.AutoFlickTurn = not Cfg.AutoFlickTurn
+        print('[AzxRae] Auto Flick Turn:', Cfg.AutoFlickTurn)
+    elseif key == Enum.KeyCode.C then
+        Cfg.Wiggle = not Cfg.Wiggle
+        print('[AzxRae] Wiggle:', Cfg.Wiggle)
+    elseif key == Enum.KeyCode.V then
+        Cfg.ClanTag = not Cfg.ClanTag
+        applyClanTag()
+        print('[AzxRae] Clan Tag:', Cfg.ClanTag)
+    elseif key == Enum.KeyCode.L then
+        Cfg.MobileButtonsEnabled = not Cfg.MobileButtonsEnabled
+        print('[AzxRae] Mobile Buttons:', Cfg.MobileButtonsEnabled)
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- MOBILE TOUCH BUTTON SYSTEM
+-- ══════════════════════════════════════════════════════════════════════
+local PlayerGui     = LocalPlayer:WaitForChild('PlayerGui')
+local MobileGui     = Instance.new('ScreenGui')
+MobileGui.Name      = 'AzxRae_MobileUI'
+MobileGui.ResetOnSpawn = false
+MobileGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+MobileGui.Parent    = PlayerGui
+
+local mobileFrame   = Instance.new('Frame')
+mobileFrame.Name    = 'ButtonPanel'
+mobileFrame.Size    = UDim2.new(0, 380, 0, 260)
+mobileFrame.Position= UDim2.new(0, 10, 1, -270)
+mobileFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+mobileFrame.BackgroundTransparency = 0.15
+mobileFrame.BorderSizePixel = 0
+mobileFrame.Visible = false
+mobileFrame.Parent  = MobileGui
+
+local corner = Instance.new('UICorner')
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = mobileFrame
+
+local titleLabel = Instance.new('TextLabel')
+titleLabel.Size   = UDim2.new(1, 0, 0, 30)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = 'Azx.Rae | REIMAGINED'
+titleLabel.TextColor3 = Color3.fromRGB(160, 80, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Parent = mobileFrame
+
+local buttonLayout = Instance.new('UIGridLayout')
+buttonLayout.CellSize         = UDim2.new(0, 85, 0, 38)
+buttonLayout.CellPadding      = UDim2.new(0, 6, 0, 6)
+buttonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+buttonLayout.VerticalAlignment   = Enum.VerticalAlignment.Top
+buttonLayout.FillDirection    = Enum.FillDirection.Horizontal
+buttonLayout.SortOrder        = Enum.SortOrder.LayoutOrder
+buttonLayout.Parent = mobileFrame
+
+local uiPad = Instance.new('UIPadding')
+uiPad.PaddingTop   = UDim.new(0, 36)
+uiPad.PaddingLeft  = UDim.new(0, 6)
+uiPad.PaddingRight = UDim.new(0, 6)
+uiPad.PaddingBottom= UDim.new(0, 6)
+uiPad.Parent = mobileFrame
+
+local mobileButtons = {
+    { label = 'Aimbot',      cfg = 'AimbotEnabled'     },
+    { label = 'Kill Aura',   cfg = 'KillAuraEnabled'   },
+    { label = 'Auto Walk',   cfg = 'AutoWalk'           },
+    { label = 'Auto Swing',  cfg = 'AutoSwing'          },
+    { label = 'Walk+',       cfg = 'WalkBypassEnabled'  },
+    { label = 'Inf Jump',    cfg = 'InfJump'            },
+    { label = 'Spin',        cfg = 'SpinEnabled'        },
+    { label = 'Body Lock',   cfg = 'BodyLock'           },
+    { label = 'Auto Hit',    cfg = 'AutoHit'            },
+    { label = 'Anti AFK',    cfg = 'AntiAfk'            },
+    { label = 'Snipe',       cfg = 'AutoSnipe'          },
+    { label = 'Flick',       cfg = 'AutoFlickTurn'      },
+    { label = 'Wiggle',      cfg = 'Wiggle'             },
+    { label = 'Clan Tag',    cfg = 'ClanTag'            },
+}
+
+local function updateBtnColor(btn, active)
+    btn.BackgroundColor3 = active
+        and Color3.fromRGB(120, 40, 255)
+        or  Color3.fromRGB(35, 35, 55)
+end
+
+for idx, def in ipairs(mobileButtons) do
+    local btn = Instance.new('TextButton')
+    btn.Name   = def.cfg
+    btn.Size   = UDim2.new(1, 0, 1, 0)
+    btn.Text   = def.label
+    btn.TextColor3     = Color3.fromRGB(230, 230, 255)
+    btn.TextScaled     = true
+    btn.Font           = Enum.Font.Gotham
+    btn.BorderSizePixel = 0
+    btn.LayoutOrder    = idx
+    btn.Parent         = mobileFrame
+
+    local bc = Instance.new('UICorner')
+    bc.CornerRadius = UDim.new(0, 8)
+    bc.Parent = btn
+
+    updateBtnColor(btn, Cfg[def.cfg])
+
+    btn.MouseButton1Click:Connect(function()
+        local cfgKey = def.cfg
+        Cfg[cfgKey] = not Cfg[cfgKey]
+        updateBtnColor(btn, Cfg[cfgKey])
+        if cfgKey == 'ClanTag' then applyClanTag() end
+        print('[AzxRae Mobile]', def.label, ':', Cfg[cfgKey])
+    end)
+end
+
+-- Server Hop buttons (separate, below grid)
+local hopFrame = Instance.new('Frame')
+hopFrame.Name = 'ServerHopPanel'
+hopFrame.Size = UDim2.new(0, 380, 0, 46)
+hopFrame.Position = UDim2.new(0, 10, 1, -270 + 266)
+hopFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+hopFrame.BackgroundTransparency = 0.25
+hopFrame.BorderSizePixel = 0
+hopFrame.Visible = false
+hopFrame.Parent = MobileGui
+
+local hopCorner = Instance.new('UICorner')
+hopCorner.CornerRadius = UDim.new(0, 10)
+hopCorner.Parent = hopFrame
+
+local hopLayout = Instance.new('UIListLayout')
+hopLayout.FillDirection  = Enum.FillDirection.Horizontal
+hopLayout.Padding        = UDim.new(0, 6)
+hopLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+hopLayout.VerticalAlignment   = Enum.VerticalAlignment.Center
+hopLayout.Parent = hopFrame
+
+local hopTypes = { 'Small', 'Medium', 'Large', 'Any' }
+for _, ht in ipairs(hopTypes) do
+    local hbtn = Instance.new('TextButton')
+    hbtn.Size  = UDim2.new(0, 85, 0, 36)
+    hbtn.Text  = 'Hop ' .. ht
+    hbtn.TextColor3    = Color3.fromRGB(230, 230, 255)
+    hbtn.TextScaled    = true
+    hbtn.Font          = Enum.Font.Gotham
+    hbtn.BackgroundColor3 = Color3.fromRGB(40, 20, 80)
+    hbtn.BorderSizePixel = 0
+    hbtn.Parent = hopFrame
+
+    local hc = Instance.new('UICorner')
+    hc.CornerRadius = UDim.new(0, 8)
+    hc.Parent = hbtn
+
+    hbtn.MouseButton1Click:Connect(function()
+        serverHop(ht)
+    end)
+end
+
+-- Toggle button (always visible on screen)
+local toggleBtn = Instance.new('TextButton')
+toggleBtn.Name = 'AzxRae_Toggle'
+toggleBtn.Size = UDim2.new(0, 120, 0, 34)
+toggleBtn.Position = UDim2.new(0, 10, 1, -310)
+toggleBtn.Text = '☰ Azx.Rae'
+toggleBtn.TextColor3 = Color3.fromRGB(230, 200, 255)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextScaled = true
+toggleBtn.BackgroundColor3 = Color3.fromRGB(80, 20, 180)
+toggleBtn.BorderSizePixel = 0
+toggleBtn.ZIndex = 10
+toggleBtn.Parent = MobileGui
+
+local tc = Instance.new('UICorner')
+tc.CornerRadius = UDim.new(0, 10)
+tc.Parent = toggleBtn
+
+local uiVisible = false
+toggleBtn.MouseButton1Click:Connect(function()
+    uiVisible = not uiVisible
+    mobileFrame.Visible = uiVisible
+    hopFrame.Visible    = uiVisible
+end)
+
+-- Update button states every half second to keep UI in sync
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        for _, def in ipairs(mobileButtons) do
+            local btn = mobileFrame:FindFirstChild(def.cfg)
+            if btn then
+                updateBtnColor(btn, Cfg[def.cfg])
+            end
+        end
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════
+-- STARTUP NOTIFICATION
+-- ══════════════════════════════════════════════════════════════════════
+print('======================================')
+print('   Azx.Rae | REIMAGINED  - Loaded!')
+print('======================================')
+print('[Keys] R=Aimbot  P=KillAura  K=AutoWalk')
+print('[Keys] F=AutoSwing  Q=WalkBypass  J=InfJump')
+print('[Keys] G=Spin  H=BodyLock  N=AutoHit')
+print('[Keys] M=AntiAfk  X=Snipe  B=FlickTurn')
+print('[Keys] C=Wiggle  V=ClanTag  L=MobileUI')
+print('[Hold T] Teleport Strafe (while Aimbot on)')
+print('======================================')
