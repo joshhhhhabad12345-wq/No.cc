@@ -1,0 +1,775 @@
+-- ts file was generated at discord.gg/25ms
+
+local _UserInputService = game:GetService('UserInputService')
+local _RunService = game:GetService('RunService')
+local _LocalPlayer = game.Players.LocalPlayer
+local u4 = false
+local u5 = false
+
+local function u8()
+    if not u5 then
+        u5 = true
+
+        _UserInputService.InputBegan:Connect(function(p6, p7)
+            if not p7 then
+                if p6.KeyCode == Enum.KeyCode.Q then
+                    u4 = not u4
+                end
+            end
+        end)
+    end
+end
+
+_RunService.Heartbeat:Connect(function()
+    if u4 and _LocalPlayer.Character and (_LocalPlayer.Character:FindFirstChild('Humanoid') and _LocalPlayer.Character.Humanoid.MoveDirection.Magnitude > 0) then
+        _LocalPlayer.Character.HumanoidRootPart.CFrame = _LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -0.1375)
+    end
+end)
+
+local _LocalPlayer2 = game.Players.LocalPlayer
+local _Character = _LocalPlayer2.Character
+
+getgenv().maxRange = 20
+getgenv().ToggleKey1 = Enum.KeyCode.R
+getgenv().teleportKey = Enum.KeyCode.T
+getgenv().modifyToolKey = Enum.KeyCode.F
+getgenv().KillAuraKey = Enum.KeyCode.P
+getgenv().Autowalkkey1 = Enum.KeyCode.K
+getgenv().TPDistance = 4
+getgenv().WiggleMode = 'Right'
+getgenv().ReachSizeY = 30
+getgenv().ReachSizeX = 30
+getgenv().ReachSizeZ = 30
+getgenv().ReachType = 'Enum.PartType.Ball'
+
+local u11 = false
+local _Part = Instance.new('Part')
+
+_Part.Name = 'Highlight'
+_Part.Size = Vector3.new(3, 5, 3)
+_Part.Transparency = 0.5
+_Part.BrickColor = BrickColor.new('Bright red')
+_Part.CanCollide = false
+_Part.TopSurface = Enum.SurfaceType.Smooth
+_Part.BottomSurface = Enum.SurfaceType.Smooth
+_Part.Parent = workspace
+
+local u13 = {
+    'HumanoidRootPart',
+}
+
+local function u46()
+    if _Character and u11 then
+        local _Position = _Character.HumanoidRootPart.Position
+        local v15, v16, v17 = ipairs(game.Players:GetPlayers())
+        local v18 = {}
+
+        while true do
+            local v19
+
+            v17, v19 = v15(v16, v17)
+
+            if v17 == nil then
+                break
+            end
+            if v19 ~= _LocalPlayer2 and v19.Character then
+                local v20, v21, v22 = ipairs(u13)
+
+                while true do
+                    local v23
+
+                    v22, v23 = v20(v21, v22)
+
+                    if v22 == nil then
+                        break
+                    end
+
+                    local v24 = v19.Character:FindFirstChild(v23)
+
+                    if v24 then
+                        local _Magnitude = (v24.Position - _Position).Magnitude
+
+                        if _Magnitude <= getgenv().maxRange then
+                            table.insert(v18, {
+                                Part = v24,
+                                Distance = _Magnitude,
+                            })
+                        end
+                    end
+                end
+            end
+        end
+
+        local _huge = math.huge
+        local v27, v28, v29 = ipairs(v18)
+        local v30 = nil
+
+        while true do
+            local v31
+
+            v29, v31 = v27(v28, v29)
+
+            if v29 == nil then
+                break
+            end
+
+            local _Part2 = v31.Part
+            local _Distance = v31.Distance
+
+            if _Distance < _huge then
+                local _Humanoid = _Part2.Parent:FindFirstChild('Humanoid')
+
+                if _Humanoid then
+                    if _Humanoid.Health > 0 then
+                        v30 = _Part2
+                        _huge = _Distance
+                    end
+                end
+            end
+        end
+
+        if v30 then
+            local _Unit = (v30.Position - _Position).Unit
+            local _Unit2 = Vector3.new(_Unit.X, 0, _Unit.Z).Unit
+            local v37, v38
+
+            if getgenv().WiggleMode ~= 'Right' then
+                if getgenv().WiggleMode ~= 'Left' then
+                    if getgenv().WiggleMode ~= 'Both' then
+                        v37 = 0
+                        v38 = 0
+                    else
+                        v37 = 1
+                        v38 = 1
+                    end
+                else
+                    v37 = 1
+                    v38 = 0
+                end
+            else
+                v37 = 0
+                v38 = 1
+            end
+            if getgenv().Wiggle then
+                _Unit2 = Vector3.new(_Unit2.X + math.random(-v37, v37), 0, _Unit2.Z + math.random(-v38, v38)).Unit
+            end
+
+            local v39 = CFrame.lookAt(Vector3.new(), _Unit2)
+
+            _Character.HumanoidRootPart.CFrame = CFrame.new(_Position) * v39
+            _Part.CFrame = CFrame.new(v30.Position)
+
+            local _Tool = _LocalPlayer2.Character:FindFirstChildOfClass('Tool')
+
+            if not _Tool and getgenv().autoActivateToolEnabled then
+                while not _Tool do
+                    wait()
+
+                    _Tool = _LocalPlayer2.Character:FindFirstChildOfClass('Tool')
+                end
+            end
+            if _Tool and getgenv().autoActivateToolEnabled then
+                _Tool:Activate()
+                _Tool:Activate()
+            end
+            if game:GetService('UserInputService'):IsKeyDown(getgenv().teleportKey) then
+                local _TPDistance = getgenv().TPDistance
+
+                if getgenv().randomizeTeleport then
+                    getgenv().randomness = 2
+                    _TPDistance = _TPDistance + math.random(-randomness, randomness)
+                end
+
+                local v42 = v30.Position - v30.CFrame.LookVector * _TPDistance
+                local _Unit3 = (v30.Position - v42).Unit
+                local _Unit4 = Vector3.new(_Unit3.X, 0, _Unit3.Z).Unit
+                local v45 = CFrame.lookAt(Vector3.new(), _Unit4)
+
+                _Character.HumanoidRootPart.CFrame = CFrame.new(v42) * v45
+            end
+        end
+    end
+end
+local function u47()
+    u11 = not u11
+
+    u46()
+end
+local function v49(p48)
+    _Character = p48
+
+    u46()
+end
+
+if _LocalPlayer2.Character then
+    v49(_LocalPlayer2.Character)
+end
+
+_LocalPlayer2.CharacterAdded:Connect(v49)
+game:GetService('UserInputService').InputBegan:Connect(function(p50, p51)
+    if not p51 and p50.KeyCode == getgenv().ToggleKey1 then
+        u47()
+    end
+end)
+
+local _RunService2 = game:GetService('RunService')
+
+_RunService2.Heartbeat:Connect(u46)
+
+local u53 = false
+
+local function u56()
+    u53 = not u53
+
+    local _Tool2 = _LocalPlayer2.Character:FindFirstChildOfClass('Tool')
+    local v55 = _Tool2 and _Tool2:FindFirstChild('Handle')
+
+    if v55 then
+        if u53 then
+            v55.Size = Vector3.new(getgenv().ReachSizeX, getgenv().ReachSizeY, getgenv().ReachSizeZ)
+            v55.BrickColor = BrickColor.new('Bright blue')
+            v55.Shape = getgenv().ReachType
+            v55.Transparency = 0.7
+        else
+            v55.Size = Vector3.new(1, 0.8, 4)
+            v55.Shape = Enum.PartType.Block
+            v55.Transparency = 1
+        end
+    end
+end
+
+local u57 = false
+
+local function u58()
+    u57 = not u57
+
+    if u57 then
+        onPrintTargetParts()
+    else
+        print('Target Character Model Parts: OFF')
+    end
+end
+
+game:GetService('UserInputService').InputBegan:Connect(function(p59, p60)
+    if not p60 and p59.KeyCode == getgenv().KillAuraKey then
+        u58()
+    end
+end)
+
+local function u84()
+    if _Character and u11 then
+        local _Position2 = _Character.HumanoidRootPart.Position
+        local v62, v63, v64 = ipairs(game.Players:GetPlayers())
+        local v65 = {}
+
+        while true do
+            local v66
+
+            v64, v66 = v62(v63, v64)
+
+            if v64 == nil then
+                break
+            end
+            if v66 ~= _LocalPlayer2 and (v66.Character and (v66.Character.HumanoidRootPart.Position - _Position2).Magnitude <= getgenv().maxRange) then
+                table.insert(v65, v66.Character)
+            end
+        end
+
+        local _huge2 = math.huge
+        local v68, v69, v70 = ipairs(v65)
+        local v71 = nil
+
+        while true do
+            local v72
+
+            v70, v72 = v68(v69, v70)
+
+            if v70 == nil then
+                break
+            end
+
+            local _Magnitude2 = (v72.HumanoidRootPart.Position - _Position2).Magnitude
+
+            if _Magnitude2 < _huge2 then
+                local _Humanoid2 = v72:FindFirstChild('Humanoid')
+
+                if _Humanoid2 then
+                    if _Humanoid2.Health > 0 then
+                        v71 = v72
+                        _huge2 = _Magnitude2
+                    end
+                end
+            end
+        end
+
+        if v71 then
+            print('Target Character Model Parts:')
+
+            local function v81(p75)
+                local v76, v77, v78 = ipairs(p75:GetDescendants())
+
+                while true do
+                    local v79
+
+                    v78, v79 = v76(v77, v78)
+
+                    if v78 == nil then
+                        break
+                    end
+                    if v79:IsA('BasePart') then
+                        local _Parent = v79.Parent
+
+                        if _Parent:IsA('Model') and _Parent.Name ~= _LocalPlayer2.Name then
+                            firetouchinterest(_Character:FindFirstChildOfClass('Tool'):FindFirstChild('Handle'), v79, 1)
+                            firetouchinterest(_Character:FindFirstChildOfClass('Tool'):FindFirstChild('Handle'), v79, 0)
+                        end
+                    end
+                end
+            end
+
+            local v82, v83 = pcall(v81, v71)
+
+            if not v82 then
+                warn('Error occurred while printing target parts:', v83)
+            end
+        end
+    end
+end
+
+_RunService2.Heartbeat:Connect(function()
+    if u57 then
+        u84()
+    end
+end)
+game:GetService('UserInputService').InputBegan:Connect(function(p85, p86)
+    if not p86 and p85.KeyCode == getgenv().modifyToolKey then
+        u56()
+    end
+end)
+
+local function u87()
+    getgenv().autoWalkEnabled = not getgenv().autoWalkEnabled
+end
+
+game:GetService('UserInputService').InputBegan:Connect(function(p88, p89)
+    if not p89 and p88.KeyCode == getgenv().Autowalkkey1 then
+        u87()
+    end
+end)
+
+local function v105()
+    if _Character and (u11 and getgenv().autoWalkEnabled) then
+        local _huge3 = math.huge
+        local _Position3 = _Character.HumanoidRootPart.Position
+        local v92, v93, v94 = ipairs(game.Players:GetPlayers())
+        local v95 = nil
+
+        while true do
+            local v96
+
+            v94, v96 = v92(v93, v94)
+
+            if v94 == nil then
+                break
+            end
+            if v96 ~= _LocalPlayer2 and v96.Character then
+                local v97, v98, v99 = ipairs(u13)
+
+                while true do
+                    local v100
+
+                    v99, v100 = v97(v98, v99)
+
+                    if v99 == nil then
+                        break
+                    end
+
+                    local v101 = v96.Character:FindFirstChild(v100)
+
+                    if v101 then
+                        local _Magnitude3 = (v101.Position - _Position3).Magnitude
+
+                        if _Magnitude3 <= getgenv().maxRange and _Magnitude3 < _huge3 then
+                            local _Humanoid3 = v101.Parent:FindFirstChild('Humanoid')
+
+                            if _Humanoid3 then
+                                if _Humanoid3.Health > 0 then
+                                    v95 = v101
+                                    _huge3 = _Magnitude3
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        if v95 then
+            local _Position4 = v95.Position
+
+            _Character.Humanoid:MoveTo(_Position4)
+        else
+            _Character.Humanoid:MoveTo(_Position3)
+        end
+    end
+end
+
+_RunService2.Heartbeat:Connect(v105)
+
+local v111 = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local _LocalPlayer4 = game:GetService('Players').LocalPlayer
+
+getgenv().AntiAfk = false
+getgenv().plrName = _LocalPlayer4.DisplayName
+getgenv().ClanTag = false
+getgenv().randomizeTeleport = false
+getgenv().Wiggle = false
+
+function AntiAfk()
+    while getgenv().AntiAfk == true do
+        Players = game:GetService('Players')
+
+        local v113 = getconnections or get_signal_cons
+
+        if v113 then
+            local v114, v115, v116 = pairs(v113(Players.LocalPlayer.Idled))
+
+            while true do
+                local v117
+
+                v116, v117 = v114(v115, v116)
+
+                if v116 == nil then
+                    break
+                end
+                if v117.Disable then
+                    v117:Disable()
+                elseif v117.Disconnect then
+                    v117:Disconnect()
+                end
+            end
+        else
+            Players.LocalPlayer.Idled:Connect(function()
+                local _VirtualUser = game:GetService('VirtualUser')
+
+                _VirtualUser:CaptureController()
+                _VirtualUser:ClickButton2(Vector2.new())
+            end)
+        end
+
+        wait(10)
+    end
+end
+
+game:GetService('RunService').RenderStepped:Connect(function()
+    pcall(function()
+        if game.Players.LocalPlayer.Character.Humanoid.MoveDirection.Magnitude > 0 then
+            game.Players.LocalPlayer.Character:TranslateBy(game.Players.LocalPlayer.Character.Humanoid.MoveDirection * TargetWalkspeed / 50)
+        end
+    end)
+end)
+
+local _UserInputService2 = game:GetService('UserInputService')
+
+function InfJump()
+    while getgenv().InfJump == true do
+        wait(1e75)
+    end
+end
+function Wiggle()
+    while getgenv().Wiggle == true do
+        wait(1e75)
+    end
+end
+function randomizeTeleport()
+    while getgenv().randomizeTeleport == true do
+        wait(1e75)
+    end
+end
+function autoActivateToolEnabled()
+    while getgenv().autoActivateToolEnabled == true do
+        wait(1e75)
+    end
+end
+
+_UserInputService2.JumpRequest:Connect(function()
+    local _Humanoid4 = game.Players.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
+
+    if getgenv().InfJump == true and (_Humanoid4 and _Humanoid4:GetState() ~= Enum.HumanoidStateType.Jumping) then
+        _Humanoid4:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+local v121 = v111:CreateWindow({
+    Name = 'Baldisy Flick',
+    Icon = 0,
+    LoadingTitle = 'Zoonex On Top',
+    LoadingSubtitle = 'by Baldisy',
+    Theme = 'Default',
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false,
+    ConfigurationSaving = {
+        Enabled = false,
+        FolderName = nil,
+        FileName = 'Sword skrtt',
+    },
+    Discord = {
+        Enabled = false,
+        Invite = 'noinvitelink',
+        RememberJoins = true,
+    },
+    KeySystem = true,
+    KeySettings = {
+        Title = 'Baldisy Flick',
+        Subtitle = 'Key System',
+        Note = 'Get on video description',
+        FileName = 'KeyBaldi',
+        SaveKey = false,
+        GrabKeyFromSite = false,
+        Key = {
+            'ZooneX',
+        },
+        {
+            'Sub4More',
+        },
+        {
+            'Nihaoma',
+        },
+    },
+})
+
+v111:Notify({
+    Title = 'nihao',
+    Content = 'Support Baldisy',
+    Duration = 6.5,
+    Image = 4483362458,
+})
+
+local _SwordFight = v121:CreateTab('Sword Fight', 4483362458)
+
+_SwordFight:CreateSection('Main stuff')
+_SwordFight:CreateInput({
+    Name = 'Aimbot',
+    CurrentValue = 'R',
+    PlaceholderText = 'Press a key',
+    RemoveTextAfterFocusLost = false,
+    Flag = 'AimbotKeyInput',
+    Callback = function(p123)
+        getgenv().ToggleKey1 = Enum.KeyCode[p123]
+    end,
+})
+_SwordFight:CreateSlider({
+    Name = 'Aimbot Distance',
+    Range = {0, 500},
+    Increment = 0.1,
+    Suffix = 'Units',
+    CurrentValue = 20,
+    Flag = 'AimbotDistanceSlider',
+    Callback = function(p124)
+        getgenv().maxRange = p124
+    end,
+})
+_SwordFight:CreateToggle({
+    Name = 'Auto Spin',
+    CurrentValue = false,
+    Flag = 'Toggle2',
+    Callback = function(p125)
+        getgenv().Wiggle = p125
+
+        Wiggle()
+    end,
+})
+_SwordFight:CreateDropdown({
+    Name = 'Select Spin Mode',
+    Options = {
+        'Left',
+        'Right',
+        'Both',
+    },
+    CurrentOption = {
+        'Right',
+    },
+    MultipleOptions = false,
+    Flag = 'WiggleModeDropdown',
+    Callback = function(p126)
+        getgenv().WiggleMode = p126[1]
+    end,
+})
+_SwordFight:CreateToggle({
+    Name = 'Auto Swing',
+    CurrentValue = false,
+    Flag = 'Toggle1',
+    Callback = function(p127)
+        getgenv().autoActivateToolEnabled = p127
+
+        autoActivateToolEnabled()
+    end,
+})
+_SwordFight:CreateInput({
+    Name = 'Kill Aura',
+    CurrentValue = 'P',
+    PlaceholderText = 'Press a key',
+    RemoveTextAfterFocusLost = false,
+    Flag = 'KillAuraKeyInput',
+    Callback = function(p128)
+        getgenv().KillAuraKey = Enum.KeyCode[p128]
+    end,
+})
+_SwordFight:CreateInput({
+    Name = 'Teleport Strafe',
+    CurrentValue = 'T',
+    PlaceholderText = 'Press a key',
+    RemoveTextAfterFocusLost = false,
+    Flag = 'TeleportKeyInput',
+    Callback = function(p129)
+        getgenv().teleportKey = Enum.KeyCode[p129]
+    end,
+})
+_SwordFight:CreateSlider({
+    Name = 'Teleport Distance',
+    Range = {0, 20},
+    Increment = 1,
+    Suffix = 'Units',
+    CurrentValue = 4,
+    Flag = 'TeleportDistanceSlider',
+    Callback = function(p130)
+        getgenv().TPDistance = p130
+    end,
+})
+
+local _Misc = v121:CreateTab('Misc', 4483362458)
+
+_Misc:CreateSection('Edit')
+_Misc:CreateToggle({
+    Name = 'WalkSpeed Bypass',
+    CurrentValue = false,
+    Flag = 'Toggle1',
+    Callback = function(p132)
+        u4 = p132
+
+        if p132 and not u5 then
+            u8()
+        end
+    end,
+})
+_Misc:CreateInput({
+    Name = 'Reach',
+    CurrentValue = 'F',
+    PlaceholderText = 'Press a key',
+    RemoveTextAfterFocusLost = false,
+    Flag = 'ReachKeyInput',
+    Callback = function(p133)
+        getgenv().modifyToolKey = Enum.KeyCode[p133]
+    end,
+})
+_Misc:CreateDropdown({
+    Name = 'Select Reach Type',
+    Options = {
+        'Enum.PartType.Ball',
+        'Enum.PartType.Block',
+        'Enum.PartType.CornerWedge',
+        'Enum.PartType.Cylinder',
+        'Enum.PartType.Wedge',
+    },
+    CurrentOption = {
+        'Enum.PartType.Ball',
+    },
+    MultipleOptions = false,
+    Flag = 'ReachTypeDropdown',
+    Callback = function(p134)
+        getgenv().ReachType = p134
+    end,
+})
+_Misc:CreateSlider({
+    Name = 'Reach SizeX',
+    Range = {0, 50},
+    Increment = 0.1,
+    Suffix = 'Units',
+    CurrentValue = 30,
+    Flag = 'ReachSizeXSlider',
+    Callback = function(p135)
+        getgenv().ReachSizeX = p135
+    end,
+})
+_Misc:CreateSlider({
+    Name = 'Reach SizeY',
+    Range = {0, 50},
+    Increment = 0.1,
+    Suffix = 'Units',
+    CurrentValue = 30,
+    Flag = 'ReachSizeYSlider',
+    Callback = function(p136)
+        getgenv().ReachSizeY = p136
+    end,
+})
+_Misc:CreateSlider({
+    Name = 'Reach SizeZ',
+    Range = {0, 50},
+    Increment = 0.1,
+    Suffix = 'Units',
+    CurrentValue = 30,
+    Flag = 'ReachSizeZSlider',
+    Callback = function(p137)
+        getgenv().ReachSizeZ = p137
+    end,
+})
+_Misc:CreateSlider({
+    Name = 'WalkSpeed',
+    Range = {0, 200},
+    Increment = 0.1,
+    Suffix = 'Speed',
+    CurrentValue = 0,
+    Flag = 'SpeedSlider',
+    Callback = function(p138)
+        TargetWalkspeed = p138
+    end,
+})
+_Misc:CreateDropdown({
+    Name = 'Target Box Color',
+    Options = {
+        'Bright red',
+        'Red',
+        'Black',
+        'Blue',
+        'Cyan',
+        'Pink',
+        'White',
+    },
+    CurrentOption = {
+        'Bright red',
+    },
+    MultipleOptions = false,
+    Flag = 'TargetBoxColorDropdown',
+    Callback = function(p139)
+        game:GetService('Workspace').Highlight.BrickColor = BrickColor.new(p139)
+    end,
+})
+_Misc:CreateSlider({
+    Name = 'Box Transparency',
+    Range = {0, 1},
+    Increment = 0.05,
+    Suffix = '',
+    CurrentValue = 0.3,
+    Flag = 'BoxTransparencySlider',
+    Callback = function(p140)
+        game:GetService('Workspace').Highlight.Transparency = p140
+    end,
+})
+
+local _Extra = v121:CreateTab('Extra', 4483362458)
+
+_Extra:CreateButton({
+    Name = 'Tomsware',
+    Flag = 'TOMS',
+    Callback = function()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/wepemen/wepemen/main/Tomsware.lua', true))()
+    end,
+})
+_Extra:CreateButton({
+    Name = 'Tag',
+    Flag = 'ClanTagButton',
+    Callback = function()
+        _LocalPlayer4.DisplayName = ' SLAT  ' .. getgenv().plrName
+    end,
+})
+v111:LoadConfiguration()
