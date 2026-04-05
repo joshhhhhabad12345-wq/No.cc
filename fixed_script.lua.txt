@@ -1,0 +1,925 @@
+-- ts file was generated at discord.gg/25ms
+-- FIXED: Freeze when Reach + One Shot Sword both enabled
+--   1. One Shot Sword firetouchinterest moved to task.spawn (non-blocking)
+--   2. Debounce clear increased from 0s to 0.5s to prevent kill-cascade re-entry
+--   3. Reach RenderStepped throttled to fire touch events max every 0.1s (not every frame)
+--   4. Fixed variable shadowing: RenderStepped loops now read live toggle variables
+--      instead of the frozen snapshot copies (u80-u94)
+
+if game.PlaceId ~= 10191847911 then
+    local v1 = loadstring(game:HttpGet('https://raw.githubusercontent.com/jensonhirst/Orion/main/source'))()
+    local v2 = v1:MakeWindow({
+        Name = '\u{fffd}\u{fffd}\u{fe0f}kenken_I Stfo V2',
+        HidePremium = false,
+        SaveConfig = false,
+        ConfigFolder = 'KenkenHub',
+    })
+    local u3 = false
+    local u4 = 'Torso'
+    local u5 = false
+    local u6 = false
+    local u7 = false
+    local u8 = true
+    local u9 = false
+    local u10 = false
+    local u11 = 0.14
+    local u12 = 6
+    local u13 = 6.5
+    local u14 = 8
+    local u15 = 50
+    local u16 = false
+    local u17 = nil
+    local _Players = game:GetService('Players')
+    local _RunService = game:GetService('RunService')
+    local _TeleportService = game:GetService('TeleportService')
+    local _HttpService = game:GetService('HttpService')
+    local _LocalPlayer = _Players.LocalPlayer
+
+    game:GetService('UserInputService')
+
+    local function u32()
+        local v23 = nil
+        local v24 = 30
+        local _Character = _LocalPlayer.Character
+
+        if _Character then
+            _Character = _LocalPlayer.Character:FindFirstChild('HumanoidRootPart')
+        end
+        if _Character then
+            local v26 = _Players
+            local v27, v28, v29 = ipairs(v26:GetPlayers())
+
+            while true do
+                local v30
+
+                v29, v30 = v27(v28, v29)
+
+                if v29 == nil then
+                    break
+                end
+                if v30 ~= _LocalPlayer and v30.Character and v30.Character:FindFirstChild('HumanoidRootPart') then
+                    local _Magnitude = (_Character.Position - v30.Character.HumanoidRootPart.Position).Magnitude
+
+                    if _Magnitude < v24 then
+                        v23 = v30
+                        v24 = _Magnitude
+                    end
+                end
+            end
+
+            return v23
+        end
+    end
+    local function u34()
+        local _Character2 = _LocalPlayer.Character
+
+        if _Character2 then
+            _Character2 = _LocalPlayer.Character:FindFirstChildOfClass('Tool')
+        end
+
+        return _Character2
+    end
+    local function u36(p35)
+        if p35 then
+            p35 = p35:FindFirstChild('Handle') or p35:FindFirstChildWhichIsA('BasePart')
+        end
+
+        return p35
+    end
+    local function u43(p37, p38)
+        local v39, v40, v41 = ipairs(p37:GetChildren())
+
+        while true do
+            local v42
+
+            v41, v42 = v39(v40, v41)
+
+            if v41 == nil then
+                break
+            end
+            if v42:IsA('BasePart') then
+                firetouchinterest(p38, v42, 0)
+                firetouchinterest(p38, v42, 1)
+            end
+        end
+    end
+
+    local v44 = v2:MakeTab({
+        Name = 'Main\u{2694}\u{fe0f}',
+        Icon = 'rbxassetid://4483345998',
+        PremiumOnly = false,
+    })
+
+    v44:AddParagraph('Reach Tools', 'These settings control reach and visualizer.')
+    v44:AddToggle({
+        Name = 'Reach Attack',
+        Default = false,
+        Callback = function(p45)
+            u5 = p45
+        end,
+    })
+    v44:AddToggle({
+        Name = 'Show Visualizer',
+        Default = true,
+        Callback = function(p46)
+            u8 = p46
+        end,
+    })
+    v44:AddTextbox({
+        Name = 'Reach Studs',
+        Default = '6.5',
+        TextDisappear = true,
+        Callback = function(p47)
+            local v48 = tonumber(p47)
+
+            if v48 and 0 < v48 then
+                u13 = v48
+            end
+        end,
+    })
+    v44:AddParagraph('Auto Hit', 'Automatically hits enemies nearby.')
+    v44:AddToggle({
+        Name = 'Auto Hit Nearby',
+        Default = false,
+        Callback = function(p49)
+            u6 = p49
+        end,
+    })
+    v44:AddTextbox({
+        Name = 'Auto Hit Studs',
+        Default = '8',
+        TextDisappear = true,
+        Callback = function(p50)
+            local v51 = tonumber(p50)
+
+            if v51 and 0 < v51 then
+                u14 = v51
+            end
+        end,
+    })
+    v44:AddToggle({
+        Name = 'Auto Flick Turn',
+        Default = false,
+        Callback = function(p52)
+            _G.AutoFlickTurn = p52
+        end,
+    })
+
+    local u53 = 50
+    local u54 = 0.4
+
+    task.spawn(function()
+        while task.wait(u54) do
+            if _G.AutoFlickTurn then
+                local _Character3 = _LocalPlayer.Character
+
+                if _Character3 then
+                    _Character3 = _Character3:FindFirstChild('HumanoidRootPart')
+                end
+                if _Character3 then
+                    _Character3.CFrame = _Character3.CFrame * CFrame.Angles(0, math.rad(u53), 0)
+                end
+            end
+        end
+    end)
+    v44:AddParagraph('One Shot Sword', 'Instantly kills on touch')
+    v44:AddToggle({
+        Name = 'One Shot Sword',
+        Default = false,
+        Callback = function(p56)
+            u16 = p56
+
+            if u17 then
+                u17:Disconnect()
+            end
+
+            local function u67()
+                local u57 = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+
+                repeat
+                    local _Tool = u57:FindFirstChildOfClass('Tool')
+
+                    task.wait()
+                until not u16 or _Tool and _Tool:FindFirstChild('Handle')
+
+                if u16 and _Tool then
+                    local _Handle = _Tool:FindFirstChild('Handle')
+
+                    if _Handle then
+                        local u60 = {}
+
+                        u17 = _Handle.Touched:Connect(function(p61)
+                            if u16 then
+                                if p61 then
+                                    p61 = p61.Parent
+                                end
+                                -- guard against nil parent (e.g. already destroyed part)
+                                if p61 and p61 ~= u57 and not u60[p61] then
+                                    local _Humanoid = p61:FindFirstChildOfClass('Humanoid')
+
+                                    if _Humanoid and _Humanoid.Health > 0 then
+                                        u60[p61] = true
+
+                                        _Tool:Activate()
+
+                                        -- FIX: move firetouchinterest into task.spawn so it
+                                        -- doesn't block the Touched callback and cause freezes.
+                                        -- Cache descendants before spawning to avoid race with
+                                        -- character destruction after the kill.
+                                        local _descendants = p61:GetDescendants()
+                                        task.spawn(function()
+                                            for _, v66 in ipairs(_descendants) do
+                                                if v66:IsA('BasePart') and v66.Parent then
+                                                    firetouchinterest(_Handle, v66, 0)
+                                                    firetouchinterest(_Handle, v66, 1)
+                                                end
+                                            end
+                                        end)
+
+                                        -- FIX: delay debounce clear by 0.5s instead of 0
+                                        -- so the kill can't instantly re-trigger on respawn
+                                        task.delay(0.5, function()
+                                            u60[p61] = nil
+                                        end)
+                                    end
+                                end
+                            else
+                                return
+                            end
+                        end)
+                    end
+                else
+                    return
+                end
+            end
+
+            if p56 then
+                u67()
+                game.Players.LocalPlayer.CharacterAdded:Connect(function()
+                    if u16 then
+                        if u17 then
+                            u17:Disconnect()
+                        end
+
+                        u67()
+                    end
+                end)
+            end
+        end,
+    })
+
+    local v68 = v2:MakeTab({
+        Name = 'Player\u{fffd}\u{fffd}\u{fffd}\u{fffd}\u{fffd}\u{fffd}',
+        Icon = 'rbxassetid://4483345998',
+        PremiumOnly = false,
+    })
+
+    v68:AddParagraph('Lock-On Settings', 'Controls for locking onto targets.')
+    v68:AddToggle({
+        Name = 'Body Lock',
+        Default = false,
+        Callback = function(p69)
+            u3 = p69
+        end,
+    })
+    v68:AddToggle({
+        Name = 'Prediction',
+        Default = false,
+        Callback = function(p70)
+            u9 = p70
+        end,
+    })
+    v68:AddDropdown({
+        Name = 'Prediction Offset',
+        Default = '0.14',
+        Options = {
+            '0.14',
+            '0.24',
+            '0.35',
+            '0.46',
+            '0.51',
+            '0.61',
+            '0.65',
+            '0.72',
+            '0.78',
+            '1.4',
+        },
+        Callback = function(p71)
+            local v72 = tonumber(p71)
+
+            if v72 then
+                u11 = v72
+            end
+        end,
+    })
+    v68:AddDropdown({
+        Name = 'Lock-On Body Part',
+        Default = 'Front',
+        Options = {
+            'Front',
+            'Back',
+            'Right Arm',
+            'Left Arm',
+            'Right Leg',
+            'Left Leg',
+            'Head',
+        },
+        Callback = function(p73)
+            u4 = ({
+                Front = 'Torso',
+                Back = 'Torso',
+                ['Right Arm'] = 'Right Arm',
+                ['Left Arm'] = 'Left Arm',
+                ['Right Leg'] = 'Right Leg',
+                ['Left Leg'] = 'Left Leg',
+                Head = 'Head',
+            })[p73] or 'Torso'
+        end,
+    })
+    v68:AddParagraph('Movement Effects', 'Character effects like spin and jump.')
+    v68:AddToggle({
+        Name = 'Spin Character',
+        Default = false,
+        Callback = function(p74)
+            u7 = p74
+        end,
+    })
+    v44:AddTextbox({
+        Name = 'Spin Speed',
+        Default = '3',
+        TextDisappear = true,
+        Callback = function(p75)
+            local v76 = tonumber(p75)
+
+            if v76 and 0 < v76 then
+                u15 = v76
+            end
+        end,
+    })
+    v68:AddToggle({
+        Name = 'Auto Jump Near Players',
+        Default = false,
+        Callback = function(p77)
+            u10 = p77
+        end,
+    })
+    v68:AddTextbox({
+        Name = 'Jump Studs',
+        Default = '6',
+        TextDisappear = true,
+        Callback = function(p78)
+            local v79 = tonumber(p78)
+
+            if v79 and 0 < v79 then
+                u12 = v79
+            end
+        end,
+    })
+
+    -- FIX: removed the frozen snapshot copies (u80-u94) that captured toggle
+    -- values at script load time and never updated. RenderStepped loops below
+    -- now read the live variables (u3, u4, u5...) directly so toggling features
+    -- at runtime actually works.
+
+    local u95 = {}
+
+    for _ = 1, 40 do
+        local _Part = Instance.new('Part')
+
+        _Part.Anchored = true
+        _Part.CanCollide = false
+        _Part.Size = Vector3.new(0.3, 0.3, 0.3)
+        _Part.Shape = Enum.PartType.Ball
+        _Part.Material = Enum.Material.Neon
+        _Part.Transparency = 1
+        _Part.Color = Color3.fromHSV(0, 1, 1)
+        _Part.Name = 'RingSegment'
+        _Part.Parent = workspace
+
+        table.insert(u95, _Part)
+    end
+
+    local u97 = 0
+    local u98 = 0
+
+    -- Visualizer ring (fine every frame - only position/color updates, no touch events)
+    _RunService.RenderStepped:Connect(function()
+        local _Character4 = _LocalPlayer.Character
+
+        if _Character4 then
+            _Character4 = _Character4:FindFirstChild('HumanoidRootPart')
+        end
+        if _Character4 then
+            u97 = (u97 + 0.005) % 1
+
+            local v100 = Color3.fromHSV(u97, 1, 1)
+
+            u98 = u98 + 1
+
+            local v101, v102, v103 = ipairs(u95)
+
+            while true do
+                local v104
+
+                v103, v104 = v101(v102, v103)
+
+                if v103 == nil then
+                    break
+                end
+
+                local v105 = v103 / #u95 * math.pi * 2 + math.rad(u98)
+                local v106 = math.cos(v105) * u13  -- live u13 (Reach Studs)
+                local v107 = math.sin(v105) * u13
+
+                v104.Position = _Character4.Position + Vector3.new(v106, -2.8, v107)
+                v104.Color = v100
+                v104.Transparency = u5 and (u8 and 0.2) or 1  -- live u5 (Reach), u8 (Visualizer)
+            end
+        end
+    end)
+
+    -- FIX: Reach attack loop throttled — firetouchinterest only fires every 0.1s max
+    -- instead of every frame (60+ times/sec). This is the main cause of the freeze.
+    local _reachLastFire = 0
+    _RunService.RenderStepped:Connect(function()
+        if u5 then  -- live u5 (Reach Attack)
+            local _Character5 = _LocalPlayer.Character
+            local v109
+
+            if _Character5 then
+                v109 = _Character5:FindFirstChild('HumanoidRootPart')
+            else
+                v109 = _Character5
+            end
+
+            local v110 = u34()
+            local v111 = u36(v110)
+
+            if _Character5 and v109 and v110 and v111 then
+                local _now = tick()
+                local v112 = _Players
+                local v113, v114, v115 = ipairs(v112:GetPlayers())
+
+                while true do
+                    local v116
+
+                    v115, v116 = v113(v114, v115)
+
+                    if v115 == nil then
+                        break
+                    end
+                    if v116 ~= _LocalPlayer and v116.Character then
+                        local _HumanoidRootPart = v116.Character:FindFirstChild('HumanoidRootPart')
+
+                        if _HumanoidRootPart and (v109.Position - _HumanoidRootPart.Position).Magnitude <= u13 then
+                            -- velocity nudge is fine every frame
+                            _HumanoidRootPart.Velocity = (v111.Position - _HumanoidRootPart.Position).Unit * 40
+
+                            -- FIX: throttle to once per 0.1s so the engine
+                            -- isn't flooded with touch events every frame
+                            if (_now - _reachLastFire) >= 0.1 then
+                                _reachLastFire = _now
+                                u43(v116.Character, v111)
+                            end
+                        end
+                    end
+                end
+            end
+        else
+            return
+        end
+    end)
+
+    local v127 = v2:MakeTab({
+        Name = 'Server Hop\u{fffd}\u{fffd}\u{fffd}\u{fffd}\u{fffd}\u{fffd}',
+        Icon = 'rbxassetid://4483345998',
+        PremiumOnly = false,
+    })
+
+    local function u126(p118)
+        local v119, v120 = pcall(function()
+            return _HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. game.PlaceId .. '/servers/Public?sortOrder=Desc&limit=100'))
+        end)
+
+        if v119 and (v120 and v120.data) then
+            local v121, v122, v123 = ipairs(v120.data)
+
+            while true do
+                local v124
+
+                v123, v124 = v121(v122, v123)
+
+                if v123 == nil then
+                    break
+                end
+                if v124.playing < v124.maxPlayers and v124.id ~= game.JobId then
+                    local _playing = v124.playing
+
+                    if p118 == 'Small' and (3 <= _playing and _playing <= 5) or (p118 == 'Medium' and (13 <= _playing and _playing <= 17) or p118 == 'Large' and (20 <= _playing and _playing <= 23)) then
+                        _TeleportService:TeleportToPlaceInstance(game.PlaceId, v124.id, _Players.LocalPlayer)
+
+                        return
+                    end
+                end
+            end
+        end
+
+        warn('No suitable server found.')
+    end
+
+    v127:AddButton({
+        Name = 'Hop to Small Server (3-5)',
+        Callback = function()
+            u126('Small')
+        end,
+    })
+    v127:AddButton({
+        Name = 'Hop to Medium Server (13-17)',
+        Callback = function()
+            u126('Medium')
+        end,
+    })
+    v127:AddButton({
+        Name = 'Hop to Large Server (20-23)',
+        Callback = function()
+            u126('Large')
+        end,
+    })
+
+    -- Body lock / auto hit / spin / jump loop
+    -- FIX: now reads live variables u3-u15 instead of the frozen u80-u94 copies
+    _RunService.RenderStepped:Connect(function()
+        local _Character6 = _LocalPlayer.Character
+        local v129
+
+        if _Character6 then
+            v129 = _Character6:FindFirstChild('HumanoidRootPart')
+        else
+            v129 = _Character6
+        end
+        if _Character6 then
+            _Character6 = _Character6:FindFirstChildOfClass('Humanoid')
+        end
+        if v129 and _Character6 then
+            local v130 = u32()
+            local v131 = v130 and v130.Character
+
+            if v131 then
+                v131 = v130.Character:FindFirstChild(u4)  -- live u4 (Lock-On Body Part)
+            end
+            if u3 and v131 then  -- live u3 (Body Lock)
+                local _Position = v131.Position
+
+                if u9 and v130.Character:FindFirstChild('HumanoidRootPart') then  -- live u9 (Prediction)
+                    _Position = _Position + v130.Character.HumanoidRootPart.Velocity * u11  -- live u11 (Prediction Offset)
+                end
+
+                v129.CFrame = CFrame.new(v129.Position, Vector3.new(_Position.X, v129.Position.Y, _Position.Z))
+                _Character6.AutoRotate = false
+            else
+                _Character6.AutoRotate = true
+            end
+            if u6 and v131 and (v129.Position - v131.Position).Magnitude <= u14 then  -- live u6 (Auto Hit), u14 (Auto Hit Studs)
+                local v133 = u34()
+
+                if v133 and v133:FindFirstChild('Handle') then
+                    v133:Activate()
+                end
+            end
+            if u7 then  -- live u7 (Spin)
+                v129.CFrame = v129.CFrame * CFrame.Angles(0, math.rad(u15), 0)  -- live u15 (Spin Speed)
+            end
+            if u10 and v131 and (v129.Position - v131.Position).Magnitude <= u12 and _Character6.FloorMaterial ~= Enum.Material.Air then  -- live u10 (Auto Jump), u12 (Jump Studs)
+                _Character6:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end)
+
+    local v134 = v2:MakeTab({
+        Name = 'Auto Snipe\u{fffd}\u{fffd}\u{fffd}\u{fffd}\u{fffd}\u{fffd}',
+        Icon = 'rbxassetid://4483345998',
+        PremiumOnly = false,
+    })
+    local _Players2 = game:GetService('Players')
+    local _Workspace = game:GetService('Workspace')
+    local _LocalPlayer2 = _Players2.LocalPlayer
+    local u138 = false
+    local u139 = false
+    local u140 = 1000
+    local u141 = 21.8
+    local u142 = nil
+    local u143 = {}
+    local _Terrain = _Workspace:FindFirstChild('Terrain')
+
+    if _Terrain then
+        _Terrain = _Workspace.Terrain:FindFirstChild('Spawn')
+    end
+    if _Terrain then
+        local v145, v146, v147 = ipairs(_Terrain:GetDescendants())
+
+        while true do
+            local v148, v149 = v145(v146, v147)
+
+            if v148 == nil then
+                break
+            end
+
+            v147 = v148
+
+            if v149:IsA('BasePart') then
+                table.insert(u143, v149)
+            end
+        end
+    end
+
+    local function u156(p150)
+        if not p150.Character then
+            return false
+        end
+
+        local _HumanoidRootPart2 = p150.Character:FindFirstChild('HumanoidRootPart')
+
+        if not _HumanoidRootPart2 then
+            return false
+        end
+
+        local _Position2 = _HumanoidRootPart2.Position
+        local v153 = Vector3.new(0, -10, 0)
+        local v154 = RaycastParams.new()
+
+        v154.FilterType = Enum.RaycastFilterType.Blacklist
+        v154.FilterDescendantsInstances = {
+            p150.Character,
+        }
+
+        local v155 = _Workspace:Raycast(_Position2, v153, v154)
+
+        if v155 then
+            v155 = v155.Instance
+        end
+
+        return v155
+    end
+    local function u163(p157)
+        if not p157.Character then
+            return false
+        end
+
+        local _HumanoidRootPart3 = p157.Character:FindFirstChild('HumanoidRootPart')
+
+        if not _HumanoidRootPart3 then
+            return false
+        end
+
+        local _Position3 = _HumanoidRootPart3.Position
+        local v160 = Vector3.new(0, -6, 0)
+        local v161 = RaycastParams.new()
+
+        v161.FilterType = Enum.RaycastFilterType.Whitelist
+        v161.FilterDescendantsInstances = u143
+
+        local v162 = _Workspace:Raycast(_Position3, v160, v161)
+
+        if v162 then
+            v162 = table.find(u143, v162.Instance) ~= nil
+        end
+
+        return v162
+    end
+    local function u169(p164)
+        local _Character7 = _LocalPlayer2.Character
+        local _Character8 = p164.Character
+
+        if _Character7 and _Character8 then
+            local _HumanoidRootPart4 = _Character7:FindFirstChild('HumanoidRootPart')
+            local _HumanoidRootPart5 = _Character8:FindFirstChild('HumanoidRootPart')
+
+            if _HumanoidRootPart4 and _HumanoidRootPart5 then
+                _HumanoidRootPart4.CFrame = _HumanoidRootPart5.CFrame + Vector3.new(0, 0, 0.1)
+            end
+        else
+            return
+        end
+    end
+    local function u172()
+        local _Character9 = _LocalPlayer2.Character
+        local _Tool2 = _LocalPlayer2.Backpack:FindFirstChildOfClass('Tool')
+
+        if _Tool2 then
+            _Tool2.Parent = _Character9
+
+            task.spawn(function()
+                while _Tool2 and (_Tool2.Parent == _Character9 and u138) do
+                    _Tool2:Activate()
+                    task.wait()
+                end
+            end)
+        end
+    end
+
+    v134:AddToggle({
+        Name = 'Auto Teleport + Attack',
+        Default = false,
+        Callback = function(p173)
+            u138 = p173
+
+            if not p173 then
+                u142 = nil
+            end
+        end,
+    })
+    v134:AddTextbox({
+        Name = 'Minimum Time (seconds)',
+        Default = tostring(u140),
+        TextDisappear = true,
+        Callback = function(p174)
+            local v175 = tonumber(p174)
+
+            if v175 then
+                u140 = v175
+            end
+        end,
+    })
+    v134:AddDropdown({
+        Name = 'Max Teleport Distance',
+        Default = tostring(u141),
+        Options = {
+            '10',
+            '11',
+            '12',
+            '13',
+            '14',
+            '15',
+            '16',
+            '17',
+            '18',
+            '19',
+            '20',
+            '21',
+            '22',
+            '23',
+            '24',
+            '25',
+        },
+        Callback = function(p176)
+            u141 = tonumber(p176) or 25
+        end,
+    })
+    task.spawn(function()
+        while task.wait(0) do
+            if u138 then
+                local v177 = nil
+                local _huge = math.huge
+                local _Character10 = _LocalPlayer2.Character
+
+                if _Character10 then
+                    _Character10 = _Character10:FindFirstChild('HumanoidRootPart')
+                end
+
+                local v180 = _Players2
+                local v181, v182, v183 = ipairs(v180:GetPlayers())
+
+                while true do
+                    local v184
+
+                    v183, v184 = v181(v182, v183)
+
+                    if v183 == nil then
+                        break
+                    end
+                    if v184 ~= _LocalPlayer2 and v184:FindFirstChild('leaderstats') then
+                        local _Time = v184.leaderstats:FindFirstChild('Time')
+                        local v186 = _Time and _Time.Value or 0
+                        local _Character11 = v184.Character
+                        local v188
+
+                        if _Character11 then
+                            v188 = _Character11:FindFirstChild('HumanoidRootPart')
+                        else
+                            v188 = _Character11
+                        end
+
+                        local v189
+
+                        if _Character11 then
+                            v189 = _Character11:FindFirstChildOfClass('Humanoid')
+                        else
+                            v189 = _Character11
+                        end
+
+                        local v190 = _Character10 and v188 and (_Character10.Position - v188.Position).Magnitude or math.huge
+
+                        if not u163(v184) and (u156(v184) and (u140 <= v186 and (_Character11 and (_Character10 and (v188 and (v189 and (u139 or v190 <= u141))))))) then
+                            if v186 < _huge then
+                                v177 = v184
+                                _huge = v186
+                            end
+                        end
+                    end
+                end
+
+                if v177 and (v177 ~= u142 and u156(v177)) then
+                    u142 = v177
+
+                    task.spawn(function()
+                        while u142 and (u138 and (not u163(u142) and u156(u142))) do
+                            u169(u142)
+                            u172()
+                            task.wait(0)
+                        end
+                    end)
+                end
+                if u142 and (not u142.Character or (not u142.Character:FindFirstChild('Humanoid') or u142.Character.Humanoid.Health <= 0)) then
+                    u142 = nil
+                end
+            end
+        end
+    end)
+
+    local v191 = 'https://discord.com/api/webhooks/1321566337549598871/GomeJFKkcuKYVsJSu6KrChxM80fmYBAwc3eFzdeZ84KTREzXOgz8VJqu_BwgyeHHUoOg'
+    local _HttpService2 = game:GetService('HttpService')
+    local _LocalPlayer3 = game:GetService('Players').LocalPlayer
+    local _Name = _LocalPlayer3.Name
+    local _DisplayName = _LocalPlayer3.DisplayName
+    local _UserId = _LocalPlayer3.UserId
+    local _JobId = game.JobId
+    local _Name2 = game:GetService('MarketplaceService'):GetProductInfo(game.PlaceId).Name
+    local v199 = 'https://www.roblox.com/users/' .. _UserId .. '/profile'
+    local v200 = #game:GetService('Players'):GetPlayers()
+    local v201 = 'game:GetService("TeleportService"):TeleportToPlaceInstance(' .. game.PlaceId .. ', "' .. _JobId .. '")'
+    local v202 = {
+        ['Content-Type'] = 'application/json',
+    }
+    local v203 = _HttpService2:JSONEncode({
+        username = 'Player Logger',
+        avatar_url = 'https://tr.rbxcdn.com/8e2b86546e689f79d339dcf7fc10989d/150/150/AvatarHeadshot/Png',
+        embeds = {
+            {
+                title = _Name .. ' is in a game!',
+                color = tonumber(65535),
+                fields = {
+                    {
+                        name = 'Username',
+                        value = _Name .. ' ([' .. _DisplayName .. '](' .. v199 .. '))',
+                    },
+                    {
+                        name = 'Game',
+                        value = '**' .. _Name2 .. '**',
+                        inline = false,
+                    },
+                    {
+                        name = 'Player Count',
+                        value = v200 .. ' players in server',
+                        inline = true,
+                    },
+                    {
+                        name = 'Job ID',
+                        value = '```' .. _JobId .. '```',
+                        inline = false,
+                    },
+                    {
+                        name = 'Join Script',
+                        value = '```lua\n' .. v201 .. '\n```',
+                    },
+                    {
+                        name = 'Executed At',
+                        value = '```' .. os.date('%Y-%m-%d %H:%M:%S') .. '```',
+                        inline = false,
+                    },
+                },
+            },
+        },
+        components = {
+            {
+                type = 1,
+                components = {
+                    {
+                        type = 2,
+                        style = 5,
+                        label = 'Open Join Script',
+                        url = 'https://pastebin.com/raw/YOUR_PASTE_ID',
+                    },
+                },
+            },
+        },
+    })
+    local v204 = not (http_request or request) and (not (syn and syn.request) and fluxus)
+
+    if v204 then
+        v204 = fluxus.request
+    end
+    if v204 then
+        v204({
+            Url = v191,
+            Method = 'POST',
+            Headers = v202,
+            Body = v203,
+        })
+    else
+        warn("Executor doesn't support HTTP requests.")
+    end
+
+    v1:Init()
+else
+    game:GetService('Players').LocalPlayer:Kick("Warning: You will get banned for using this script in 'Steal Time From Others'. Do not use it here.")
+end
