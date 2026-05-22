@@ -1,0 +1,1654 @@
+--[[
+    Rap Ability Test — Autoplay (Enhanced v2)
+
+    Toggle menu: Delete key (or your chosen hotkey).
+    Quick enable/disable: Numpad 0 (or your chosen quick key).
+
+    Original features (intact):
+      • Gaussian timing humanizer (jitter, clamp, miss/bad chance)
+      • Mint-type lookup — skip damage/kill notes, always hit must-hits
+      • Botplay label spoof
+      • Sustain (long note) hold + release
+      • Virtual input (VIM keypresses)
+      • Stats tab, Presets tab, Anti-AFK, 5K–7K lane support
+
+    20 NEW features added in v2:
+      1.  FC Guard            — disable autoplay on first miss/bad to preserve FC
+      2.  Accuracy Guard      — auto-disable if accuracy drops below threshold
+      3.  Song Name Detector  — reads song title from HUD, shows in Stats
+      4.  Lane Muting         — individually mute lanes (skip them entirely)
+      5.  Per-Song History    — last 5 songs' accuracy / hit / miss / streak
+      6.  Clipboard Export    — copy full stats summary with setclipboard()
+      7.  Humanizer Randomizer— optionally randomise jitter within safe range each song
+      8.  Late Hit Safety Net — wider leeway when note is past its ideal window
+      9.  Chord Counter       — counts notes hit simultaneously (same-tick multi-lane)
+     10.  Sustain Lane Display— shows which lanes are currently held in Stats
+     11.  Note Density Meter  — rolling notes-per-second counter
+     12.  Health Monitor      — reads HP from HUD, warns / can pause on critical HP
+     13.  Score Reader        — reads score label from HUD, shows in Stats
+     14.  Timing Calibration  — computes rolling avg timing delta, suggests offset fix
+     15.  Random Preset / Song— optionally pick a random humanizer preset each song
+     16.  Ghost Input Mode    — rare fake presses on idle lanes to blur bot signature
+     17.  Quick Toggle Hotkey — second hotkey to flip enabled without opening the menu
+     18.  Auto-Release on Pause— detects game pause flag and releases held keys
+     19.  Sustain Vibrato     — micro re-press pulses on held sustains (looks human)
+     20.  Miss Position Log   — logs lane + song time for each miss (debug calibration)
+]]--
+
+------------------------------------------------------------
+-- 0) Cleanup previous instance(s)
+------------------------------------------------------------
+do
+    local function killState(g)
+        if type(g) ~= "table" then return end
+        pcall(function() g.heartbeat:Disconnect() end)
+        pcall(function() g.spoof:Disconnect() end)
+        pcall(function() g.afk:Disconnect() end)
+        pcall(function() g.quickkey:Disconnect() end)
+        pcall(function() g.window:Destroy() end)
+        pcall(function() g.window:Close() end)
+        if g.players then
+            for _, p in pairs(g.players) do
+                if type(p) == "table" and not p.Ghost then p.Bot = nil end
+            end
+        end
+    end
+    killState(_G.__RAT_AUTOPLAY); _G.__RAT_AUTOPLAY = nil
+    killState(_G.__FF_AUTOPLAY);  _G.__FF_AUTOPLAY  = nil
+    if _G.__AUTOPLAY_CONN       then pcall(function() _G.__AUTOPLAY_CONN:Disconnect() end);       _G.__AUTOPLAY_CONN       = nil end
+    if _G.__AUTOPLAY_SPOOF_CONN then pcall(function() _G.__AUTOPLAY_SPOOF_CONN:Disconnect() end); _G.__AUTOPLAY_SPOOF_CONN = nil end
+    pcall(game:GetService("RunService").UnbindFromRenderStep,
+          game:GetService("RunService"), "__AUTOPLAY_RENDER")
+end
+
+------------------------------------------------------------
+-- 1) Services / module
+------------------------------------------------------------
+local RS         = game:GetService("ReplicatedStorage")
+local Players    = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local VIM        = game:GetService("VirtualInputManager")
+local UIS        = game:GetService("UserInputService")
+
+local PlayerModule = require(RS:WaitForChild("Game"):WaitForChild("PlayerModule"))
+local Trigger      = PlayerModule.Trigger
+local Tick         = PlayerModule.Tick
+
+------------------------------------------------------------
+-- 2) Localised globals
+------------------------------------------------------------
+local mathMax, mathSqrt, mathLog, mathCos, mathPi, mathAbs, mathFloor =
+    math.max, math.sqrt, math.log, math.cos, math.pi, math.abs, math.floor
+local taskDefer  = task.defer
+local pcallF     = pcall
+local debugGU    = debug.getupvalue
+
+------------------------------------------------------------
+-- 3) Upvalue accessors
+------------------------------------------------------------
+local function getUp(fn, idx)
+    local ok, val = pcallF(debugGU, fn, idx)
+    if ok then return val end
+    return nil
+end
+
+local function getPlayers()     return getUp(Trigger, 3) end
+local function getCurrentTime() return getUp(Tick, 3) or 0 end
+local function getInputOffset() return getUp(Tick, 14) or 0 end
+
+------------------------------------------------------------
+-- 4) Danger thresholds
+------------------------------------------------------------
+local DANGER = {
+    pressJitterMs   = 3,
+    releaseJitterMs = 3,
+    badChance       = 0.4,
+}
+
+------------------------------------------------------------
+-- 5) Settings
+------------------------------------------------------------
+local settings = {
+    enabled              = true,
+
+    pressOffsetMs        = 0,
+    releaseOffsetMs      = 0,
+    pressLeewayMs        = 5,
+
+    pressJitterMs        = 5,
+    pressJitterClampMs   = 5,
+    releaseJitterMs      = 5,
+    releaseJitterClampMs = 5,
+    missChance           = 0.0,
+    badChance            = 0.7,
+
+    sendVirtualInput     = true,
+    bindKey              = { "A", "S", "K", "L", "Z", "X", "C" },
+
+    hideBotplayLabel     = true,
+    skipMines            = true,
+    sideOverride         = 0,
+
+    antiAfk              = false,
+    antiAfkIntervalSec   = 60,
+
+    debugMode            = false,
+    toggleKey            = "Delete",
+
+    -- FEATURE 1: FC Guard
+    fcGuard              = false,
+
+    -- FEATURE 2: Accuracy Guard
+    accuracyGuard        = false,
+    accuracyThreshold    = 85.0,
+
+    -- FEATURE 4: Lane Muting (indexed 1-7)
+    mutedLanes           = { false, false, false, false, false, false, false },
+
+    -- FEATURE 7: Humanizer Randomizer per song
+    humanizerRandomize   = false,
+
+    -- FEATURE 8: Late hit safety net
+    lateHitSafety        = true,
+    lateHitExtraMs       = 8,
+
+    -- FEATURE 12: Health Monitor
+    healthMonitor        = false,
+    healthPauseThreshold = 15,
+
+    -- FEATURE 15: Random preset per song
+    randomPresetPerSong  = false,
+
+    -- FEATURE 16: Ghost Input Mode
+    ghostInputMode       = false,
+    ghostChance          = 0.002,
+
+    -- FEATURE 17: Quick toggle hotkey
+    quickKey             = "KeypadZero",
+
+    -- FEATURE 18: Auto-release on pause
+    autoReleaseOnPause   = true,
+
+    -- FEATURE 19: Sustain Vibrato
+    sustainVibrato       = false,
+    vibratoIntervalMs    = 120,
+
+    -- FEATURE 20: Miss position logging
+    missLog              = false,
+}
+
+------------------------------------------------------------
+-- 5b) Humanizer presets
+------------------------------------------------------------
+local PRESETS = {
+    {
+        name             = "Perfect (no jitter)",
+        pressJitterMs    = 0,  pressJitterClampMs   = 0,
+        releaseJitterMs  = 0,  releaseJitterClampMs = 0,
+        missChance       = 0,  badChance            = 0,
+    },
+    {
+        name             = "Safe (recommended)",
+        pressJitterMs    = 5,  pressJitterClampMs   = 5,
+        releaseJitterMs  = 5,  releaseJitterClampMs = 5,
+        missChance       = 0,  badChance            = 0.7,
+    },
+    {
+        name             = "Human (more variance)",
+        pressJitterMs    = 10, pressJitterClampMs   = 12,
+        releaseJitterMs  = 10, releaseJitterClampMs = 12,
+        missChance       = 0.5, badChance           = 1.5,
+    },
+    {
+        name             = "Risky (low jitter)",
+        pressJitterMs    = 2,  pressJitterClampMs   = 3,
+        releaseJitterMs  = 2,  releaseJitterClampMs = 3,
+        missChance       = 0,  badChance            = 0.3,
+    },
+}
+
+local function applyPreset(preset)
+    settings.pressJitterMs        = preset.pressJitterMs
+    settings.pressJitterClampMs   = preset.pressJitterClampMs
+    settings.releaseJitterMs      = preset.releaseJitterMs
+    settings.releaseJitterClampMs = preset.releaseJitterClampMs
+    settings.missChance           = preset.missChance
+    settings.badChance            = preset.badChance
+end
+
+------------------------------------------------------------
+-- 6) Auto-detect bound keys (up to 7 lanes)
+------------------------------------------------------------
+local function pickKeyboardKey(bind)
+    if type(bind) ~= "table" then return nil end
+    local fallback
+    for _, v in pairs(bind) do
+        local name
+        if type(v) == "string" then name = v
+        elseif typeof(v) == "EnumItem" then name = v.Name end
+        if name then
+            local up = name:upper()
+            if Enum.KeyCode[up] then
+                if up ~= "LEFT" and up ~= "RIGHT" and up ~= "UP" and up ~= "DOWN" then
+                    return up
+                end
+                fallback = fallback or up
+            end
+        end
+    end
+    return fallback
+end
+
+do
+    local plr = Players.LocalPlayer
+    local getPref = plr and plr:FindFirstChild("GetPref")
+    if getPref then
+        local ok, binds = pcallF(function() return getPref:Invoke("Binds") end)
+        if ok and type(binds) == "table" then
+            local laneNames = { "Left", "Down", "Up", "Right", "Extra1", "Extra2", "Extra3" }
+            for i, n in ipairs(laneNames) do
+                local k = pickKeyboardKey(binds[n])
+                if k then settings.bindKey[i] = k end
+            end
+        end
+    end
+end
+
+------------------------------------------------------------
+-- 7) RNG / Gauss (Box-Muller)
+------------------------------------------------------------
+local rng = Random.new(tick() * 1e3)
+
+local function gauss()
+    local u1 = mathMax(rng:NextNumber(), 1e-7)
+    return mathSqrt(-2 * mathLog(u1)) * mathCos(2 * mathPi * rng:NextNumber())
+end
+
+local function jitterMs(sigma, clampMag)
+    if sigma <= 0 then return 0 end
+    local v = gauss() * sigma
+    if v < -clampMag then return -clampMag end
+    if v >  clampMag then return  clampMag end
+    return v
+end
+
+-- FEATURE 7: Randomize humanizer within safe ranges
+local SAFE_JITTER_MIN, SAFE_JITTER_MAX = 4, 9
+local SAFE_BAD_MIN,    SAFE_BAD_MAX    = 0.5, 1.2
+
+local function randomizeHumanizer()
+    local j = SAFE_JITTER_MIN + rng:NextNumber() * (SAFE_JITTER_MAX - SAFE_JITTER_MIN)
+    settings.pressJitterMs        = j
+    settings.pressJitterClampMs   = j + 1
+    settings.releaseJitterMs      = j
+    settings.releaseJitterClampMs = j + 1
+    settings.badChance = SAFE_BAD_MIN + rng:NextNumber() * (SAFE_BAD_MAX - SAFE_BAD_MIN)
+end
+
+------------------------------------------------------------
+-- 7b) Mint-type lookup
+------------------------------------------------------------
+local mintIsDamaging = {}
+local mintIsMustHit  = {}
+do
+    local mints = RS:FindFirstChild("Game") and RS.Game:FindFirstChild("Mints")
+    if mints then
+        for _, m in ipairs(mints:GetChildren()) do
+            local ok, mod = pcall(require, m)
+            if ok and type(mod) == "table" then
+                local t = mod.Type
+                if t == 2 or t == 3 then mintIsDamaging[m.Name] = true
+                elseif t == 0        then mintIsMustHit[m.Name]  = true end
+            end
+        end
+    end
+end
+
+------------------------------------------------------------
+-- 7c) Live statistics
+------------------------------------------------------------
+local stats = {
+    notesHit     = 0,
+    notesMissed  = 0,
+    notesBad     = 0,
+    minesSkipped = 0,
+    mustHitsHit  = 0,
+    chords       = 0,
+    streak       = 0,
+    bestStreak   = 0,
+    songCount    = 0,
+    sessionStart = os.clock(),
+    -- FEATURE 9:  chord tracking (notes in same tick window)
+    lastTickLanes = {},
+    -- FEATURE 11: note density
+    recentHitTimes = {},
+    notesPerSec    = 0,
+    -- FEATURE 14: timing calibration
+    timingDeltas   = {},
+    avgDeltaMs     = 0,
+    -- FEATURE 20: miss log
+    missPositions  = {},
+    -- FEATURE 5:  per-song history
+    songHistory    = {},
+    -- Live HUD reads (features 3, 12, 13)
+    songName       = "—",
+    currentScore   = "—",
+    currentHealth  = "—",
+}
+
+-- FEATURE 5: snapshot current stats for history
+local function snapshotSong()
+    local entry = {
+        name   = stats.songName,
+        acc    = string.format("%.2f%%", (function()
+            local t = stats.notesHit + stats.notesMissed + stats.notesBad
+            if t == 0 then return 100.0 end
+            return (stats.notesHit / t) * 100
+        end)()),
+        hits   = stats.notesHit,
+        misses = stats.notesMissed,
+        bads   = stats.notesBad,
+        best   = stats.bestStreak,
+    }
+    table.insert(stats.songHistory, 1, entry)
+    if #stats.songHistory > 5 then
+        table.remove(stats.songHistory)
+    end
+end
+
+local function resetStats(newSong)
+    if newSong and stats.notesHit + stats.notesMissed + stats.notesBad > 5 then
+        snapshotSong()
+    end
+    stats.notesHit       = 0
+    stats.notesMissed    = 0
+    stats.notesBad       = 0
+    stats.minesSkipped   = 0
+    stats.mustHitsHit    = 0
+    stats.chords         = 0
+    stats.streak         = 0
+    stats.bestStreak     = 0
+    stats.songCount      = stats.songCount + 1
+    stats.recentHitTimes = {}
+    stats.timingDeltas   = {}
+    stats.avgDeltaMs     = 0
+    stats.missPositions  = {}
+    stats.lastTickLanes  = {}
+    -- FEATURE 7/15: randomize on new song
+    if settings.humanizerRandomize then randomizeHumanizer() end
+    if settings.randomPresetPerSong then
+        applyPreset(PRESETS[math.random(1, #PRESETS)])
+    end
+end
+
+local function getAccuracy()
+    local total = stats.notesHit + stats.notesMissed + stats.notesBad
+    if total == 0 then return 100.0 end
+    return (stats.notesHit / total) * 100
+end
+
+------------------------------------------------------------
+-- 8) Virtual input
+------------------------------------------------------------
+local function keyCodeForLane(laneIdx)
+    if not settings.sendVirtualInput then return nil end
+    local name = settings.bindKey[laneIdx]
+    if not name or name == "" then return nil end
+    return Enum.KeyCode[name:upper()]
+end
+
+local function vimPress(lane)
+    local kc = keyCodeForLane(lane)
+    if kc then pcallF(VIM.SendKeyEvent, VIM, true, kc, false, game) end
+end
+
+local function vimRelease(lane)
+    local kc = keyCodeForLane(lane)
+    if kc then pcallF(VIM.SendKeyEvent, VIM, false, kc, false, game) end
+end
+
+------------------------------------------------------------
+-- 9) Engine state
+------------------------------------------------------------
+local pressedNotes    = setmetatable({}, { __mode = "k" })
+local heldSustains    = {}
+local plannedDecision = setmetatable({}, { __mode = "k" })
+local vibratoTimers   = {}  -- FEATURE 19
+
+local function clearState()
+    pressedNotes    = setmetatable({}, { __mode = "k" })
+    plannedDecision = setmetatable({}, { __mode = "k" })
+    heldSustains    = {}
+    vibratoTimers   = {}
+end
+
+local detectedLaneCount = 4
+
+local function updateLaneCount(strums)
+    local n = #strums
+    if n > detectedLaneCount then detectedLaneCount = n end
+end
+
+local lastNoteCount = 0
+local hadPlayer     = false
+local lastSideIdx   = nil
+local wasPaused     = false  -- FEATURE 18
+
+local function releaseAllPressed(maxLanes)
+    maxLanes = maxLanes or detectedLaneCount
+    for laneIdx = 1, maxLanes do
+        if heldSustains[laneIdx] then
+            if lastSideIdx then
+                pcallF(Trigger, PlayerModule, lastSideIdx, laneIdx, false, true)
+            end
+            heldSustains[laneIdx] = nil
+        end
+        vimRelease(laneIdx)
+    end
+    vibratoTimers = {}
+end
+
+local function findLocalPlayerSlot(players)
+    local ov = settings.sideOverride
+    if ov == 1 or ov == 2 then
+        local p = players[ov]
+        if type(p) == "table" and p.Strums then return ov, p end
+    end
+    for k, p in pairs(players) do
+        if type(p) == "table" and p.Strums and p.Controller ~= nil and not p.Ghost then
+            return k, p
+        end
+    end
+    for k, p in pairs(players) do
+        if type(p) == "table" and p.Strums and not p.Ghost then
+            return k, p
+        end
+    end
+    return nil, nil
+end
+
+local function planFor(note)
+    local plan = plannedDecision[note]
+    if plan then return plan end
+
+    plan = { jitter = 0, releaseJ = 0, miss = false, bad = false, mine = false, mustHit = false }
+
+    if settings.skipMines and note.mint and mintIsDamaging[note.mint] then
+        plan.mine = true
+        plannedDecision[note] = plan
+        return plan
+    end
+
+    if note.mint and mintIsMustHit[note.mint] then
+        plan.mustHit = true
+        plannedDecision[note] = plan
+        return plan
+    end
+
+    plan.jitter   = jitterMs(settings.pressJitterMs,   settings.pressJitterClampMs)
+    plan.releaseJ = jitterMs(settings.releaseJitterMs, settings.releaseJitterClampMs)
+
+    if not (note.len and note.len > 0) then
+        local mc, bc = settings.missChance, settings.badChance
+        if mc > 0 or bc > 0 then
+            local r = rng:NextNumber() * 100
+            if r < mc then
+                plan.miss = true
+            elseif r < mc + bc then
+                local sign = (rng:NextNumber() < 0.5) and -1 or 1
+                plan.jitter = sign * (80 + rng:NextNumber() * 50)
+                plan.bad = true
+            end
+        end
+    end
+
+    plannedDecision[note] = plan
+    return plan
+end
+
+------------------------------------------------------------
+-- Notify helper (forward declare, defined after WindUI)
+------------------------------------------------------------
+local notify
+
+------------------------------------------------------------
+-- FEATURE 2: Accuracy Guard check
+------------------------------------------------------------
+local function checkAccuracyGuard()
+    if not settings.accuracyGuard then return end
+    local total = stats.notesHit + stats.notesMissed + stats.notesBad
+    if total < 10 then return end  -- need enough samples
+    local acc = getAccuracy()
+    if acc < settings.accuracyThreshold then
+        settings.enabled = false
+        releaseAllPressed()
+        clearState()
+        hadPlayer = false
+        if notify then
+            notify({
+                Title    = "Accuracy Guard triggered",
+                Content  = string.format("Accuracy %.1f%% < threshold %.1f%%. Autoplay disabled.", acc, settings.accuracyThreshold),
+                Icon     = "shield-off",
+                Duration = 6,
+            })
+        end
+    end
+end
+
+------------------------------------------------------------
+-- FEATURE 14: Timing calibration — rolling average
+------------------------------------------------------------
+local MAX_DELTA_SAMPLES = 50
+
+local function recordDelta(deltaMs)
+    table.insert(stats.timingDeltas, deltaMs)
+    if #stats.timingDeltas > MAX_DELTA_SAMPLES then
+        table.remove(stats.timingDeltas, 1)
+    end
+    local sum = 0
+    for _, v in ipairs(stats.timingDeltas) do sum = sum + v end
+    stats.avgDeltaMs = sum / #stats.timingDeltas
+end
+
+------------------------------------------------------------
+-- FEATURE 11: Note density (rolling 1-second window)
+------------------------------------------------------------
+local function recordHit(now)
+    table.insert(stats.recentHitTimes, now)
+    -- prune entries older than 1 second
+    local cutoff = now - 1.0
+    local i = 1
+    while i <= #stats.recentHitTimes do
+        if stats.recentHitTimes[i] < cutoff then
+            table.remove(stats.recentHitTimes, i)
+        else
+            i = i + 1
+        end
+    end
+    stats.notesPerSec = #stats.recentHitTimes
+end
+
+------------------------------------------------------------
+-- FEATURE 9: Chord detection
+------------------------------------------------------------
+local lastChordTick  = -1
+local chordLanesThisTick = 0
+
+local function recordChordLane(now)
+    if mathAbs(now - lastChordTick) < 0.005 then
+        chordLanesThisTick = chordLanesThisTick + 1
+        if chordLanesThisTick >= 2 then
+            stats.chords = stats.chords + 1
+        end
+    else
+        lastChordTick      = now
+        chordLanesThisTick = 1
+    end
+end
+
+------------------------------------------------------------
+-- FEATURE 3 / 12 / 13: HUD scraper (song name, HP, score)
+------------------------------------------------------------
+local hudCache         = nil
+local lastHudScrape    = 0
+local HUD_SCRAPE_RATE  = 1.0
+
+local function scrapeHud()
+    local now = os.clock()
+    if now - lastHudScrape < HUD_SCRAPE_RATE then return end
+    lastHudScrape = now
+
+    local plr = Players.LocalPlayer
+    local pg  = plr and plr:FindFirstChildOfClass("PlayerGui")
+    if not pg then return end
+    local hud = pg:FindFirstChild("GameHUD")
+    if not hud then hudCache = nil; return end
+    if hudCache ~= hud then hudCache = hud end
+
+    -- Song name
+    pcallF(function()
+        local label = hud:FindFirstChild("SongName", true)
+                   or hud:FindFirstChild("Song",     true)
+                   or hud:FindFirstChild("Title",    true)
+        if label and label:IsA("TextLabel") and #label.Text > 0 then
+            stats.songName = label.Text
+        end
+    end)
+
+    -- Score
+    pcallF(function()
+        local label = hud:FindFirstChild("Score",     true)
+                   or hud:FindFirstChild("ScoreText", true)
+                   or hud:FindFirstChild("Points",    true)
+        if label and label:IsA("TextLabel") then
+            stats.currentScore = label.Text
+        end
+    end)
+
+    -- Health / HP
+    pcallF(function()
+        local bar = hud:FindFirstChild("HealthBar", true)
+                 or hud:FindFirstChild("HPBar",     true)
+                 or hud:FindFirstChild("Health",    true)
+        if bar then
+            -- Try numeric value first
+            if bar:IsA("TextLabel") then
+                stats.currentHealth = bar.Text
+                local hp = tonumber(bar.Text:match("%d+"))
+                if hp and settings.healthMonitor and hp <= settings.healthPauseThreshold then
+                    -- FEATURE 12: critical HP warning
+                    if notify then
+                        notify({ Title = "⚠ Low HP!", Content = "Health at " .. tostring(hp) .. " — consider pausing.", Icon = "heart", Duration = 4 })
+                    end
+                end
+            elseif bar:IsA("Frame") and bar:FindFirstChild("Bar") then
+                local inner = bar:FindFirstChild("Bar")
+                local pct   = math.floor(inner.Size.X.Scale * 100)
+                stats.currentHealth = pct .. "%"
+                if settings.healthMonitor and pct <= settings.healthPauseThreshold then
+                    if notify then
+                        notify({ Title = "⚠ Low HP!", Content = "Health at " .. pct .. "% — consider pausing.", Icon = "heart", Duration = 4 })
+                    end
+                end
+            end
+        end
+    end)
+end
+
+------------------------------------------------------------
+-- FEATURE 1: FC Guard — disable autoplay on first miss/bad
+------------------------------------------------------------
+local fcTriggered = false
+
+local function fcGuardDisable(reason)
+    if fcTriggered then return end
+    fcTriggered      = true
+    settings.enabled = false
+    releaseAllPressed()
+    clearState()
+    hadPlayer = false
+    if notify then
+        notify({ Title = "FC Guard", Content = "Autoplay disabled: " .. reason, Icon = "x-circle", Duration = 5 })
+    end
+end
+
+------------------------------------------------------------
+-- FEATURE 19: Sustain Vibrato
+------------------------------------------------------------
+local function doVibratoTick(now)
+    if not settings.sustainVibrato then return end
+    local ivSec = settings.vibratoIntervalMs / 1000
+    for laneIdx, note in pairs(heldSustains) do
+        local last = vibratoTimers[laneIdx] or 0
+        if now - last >= ivSec then
+            vibratoTimers[laneIdx] = now
+            -- micro re-trigger: release then press again via VIM only (not Trigger)
+            local kc = keyCodeForLane(laneIdx)
+            if kc then
+                pcallF(VIM.SendKeyEvent, VIM, false, kc, false, game)
+                task.delay(0.012, function()
+                    pcallF(VIM.SendKeyEvent, VIM, true, kc, false, game)
+                end)
+            end
+        end
+    end
+end
+
+------------------------------------------------------------
+-- FEATURE 16: Ghost Input
+------------------------------------------------------------
+local lastGhostTime = 0
+
+local function ghostInputTick(now)
+    if not settings.ghostInputMode then return end
+    if now - lastGhostTime < 0.3 then return end
+    if rng:NextNumber() > settings.ghostChance * 300 then return end
+    lastGhostTime = now
+    -- Pick a lane that is NOT currently held
+    local candidates = {}
+    for i = 1, detectedLaneCount do
+        if not heldSustains[i] then candidates[#candidates+1] = i end
+    end
+    if #candidates == 0 then return end
+    local lane = candidates[math.random(1, #candidates)]
+    local kc   = keyCodeForLane(lane)
+    if kc then
+        pcallF(VIM.SendKeyEvent, VIM, true,  kc, false, game)
+        task.delay(0.01 + rng:NextNumber() * 0.02, function()
+            pcallF(VIM.SendKeyEvent, VIM, false, kc, false, game)
+        end)
+    end
+end
+
+------------------------------------------------------------
+-- Main autoplay tick
+------------------------------------------------------------
+local function autoplayTick()
+    if not settings.enabled then return end
+
+    local players = getPlayers()
+    if not players then
+        if hadPlayer then releaseAllPressed(); hadPlayer = false end
+        return
+    end
+
+    local sideIdx, p = findLocalPlayerSlot(players)
+    if not p then
+        if hadPlayer then releaseAllPressed(); hadPlayer = false end
+        return
+    end
+    hadPlayer   = true
+    lastSideIdx = sideIdx
+
+    -- FEATURE 18: auto-release on pause
+    local isPaused = p.BlockPlay or p.Killed or false
+    if isPaused then
+        if not wasPaused and settings.autoReleaseOnPause then
+            releaseAllPressed()
+            wasPaused = true
+        end
+        return
+    end
+    wasPaused = false
+
+    local hitTime    = getCurrentTime() - getInputOffset()
+    local pressOff   = settings.pressOffsetMs
+    local releaseOff = settings.releaseOffsetMs
+    local leeway     = settings.pressLeewayMs
+    local strums     = p.Strums
+    local now        = os.clock()
+
+    updateLaneCount(strums)
+
+    -- Song change detection
+    local totalNotes = 0
+    for laneIdx = 1, #strums do
+        local s = strums[laneIdx]
+        if s and s.Notes then totalNotes = totalNotes + #s.Notes end
+    end
+    if lastNoteCount > 20 and totalNotes < 5 then
+        resetStats(true)
+        clearState()
+        fcTriggered = false  -- reset FC guard for new song
+    end
+    lastNoteCount = totalNotes
+
+    -- FEATURE 19: vibrato on held sustains
+    doVibratoTick(now)
+
+    -- FEATURE 16: ghost inputs
+    ghostInputTick(now)
+
+    for laneIdx = 1, #strums do
+        local strum = strums[laneIdx]
+
+        -- Sustain release
+        local heldNote = heldSustains[laneIdx]
+        if heldNote then
+            local plan      = plannedDecision[heldNote] or planFor(heldNote)
+            local releaseAt = heldNote.t + (heldNote.len or 0) + releaseOff + plan.releaseJ
+            if heldNote.removed or hitTime >= releaseAt then
+                pcallF(Trigger, PlayerModule, sideIdx, laneIdx, false, true)
+                vimRelease(laneIdx)
+                heldSustains[laneIdx]  = nil
+                vibratoTimers[laneIdx] = nil
+            end
+        end
+
+        -- Press
+        local closestIdx = strum.Closest
+        local notes      = strum.Notes
+        local note       = closestIdx and notes and notes[closestIdx]
+        if note and not pressedNotes[note] then
+            local plan = planFor(note)
+
+            if plan.mine then
+                pressedNotes[note]   = true
+                stats.minesSkipped   = stats.minesSkipped + 1
+                stats.streak         = 0
+
+            elseif plan.miss then
+                pressedNotes[note]  = true
+                stats.notesMissed   = stats.notesMissed + 1
+                stats.streak        = 0
+                -- FEATURE 1: FC Guard
+                if settings.fcGuard then fcGuardDisable("miss planned") end
+                -- FEATURE 20: miss log
+                if settings.missLog then
+                    table.insert(stats.missPositions, { lane = laneIdx, t = note.t, time = hitTime })
+                    if settings.debugMode then
+                        print(string.format("[RAT MISS] Lane %d @ song-t %.3f | hit-t %.3f", laneIdx, note.t, hitTime))
+                    end
+                end
+                -- FEATURE 2: accuracy guard
+                checkAccuracyGuard()
+
+            else
+                -- FEATURE 4: lane muting
+                if settings.mutedLanes[laneIdx] then
+                    pressedNotes[note] = true
+                else
+                    local target    = note.t + pressOff + plan.jitter
+                    local timeDiff  = hitTime - target
+
+                    -- FEATURE 8: late hit safety net — extra leeway past the ideal window
+                    local effectiveLeeway = leeway
+                    if timeDiff > 0 and settings.lateHitSafety then
+                        effectiveLeeway = effectiveLeeway + settings.lateHitExtraMs
+                    end
+
+                    if timeDiff >= -effectiveLeeway then
+                        pressedNotes[note] = true
+
+                        -- Stats
+                        if plan.bad then
+                            stats.notesBad = stats.notesBad + 1
+                            stats.streak   = 0
+                            if settings.fcGuard then fcGuardDisable("bad note") end
+                        else
+                            stats.notesHit = stats.notesHit + 1
+                            if plan.mustHit then stats.mustHitsHit = stats.mustHitsHit + 1 end
+                            stats.streak = stats.streak + 1
+                            if stats.streak > stats.bestStreak then
+                                stats.bestStreak = stats.streak
+                            end
+                        end
+
+                        -- FEATURE 9: chord detection
+                        recordChordLane(now)
+
+                        -- FEATURE 11: note density
+                        recordHit(now)
+
+                        -- FEATURE 14: timing calibration (store delta in ms)
+                        local deltaMs = (hitTime - note.t) * 1000
+                        recordDelta(deltaMs)
+
+                        -- FEATURE 2: accuracy guard
+                        checkAccuracyGuard()
+
+                        -- Debug
+                        if settings.debugMode then
+                            print(string.format("[RAT] Lane %d | Δ %.2f ms | jitter %.2f ms | %s",
+                                laneIdx, deltaMs, plan.jitter,
+                                plan.mustHit and "MUSTHIT" or (plan.bad and "BAD" or "HIT")))
+                        end
+
+                        vimPress(laneIdx)
+                        pcallF(Trigger, PlayerModule, sideIdx, laneIdx, true, true)
+                        if note.len and note.len > 0 then
+                            heldSustains[laneIdx]  = note
+                            vibratoTimers[laneIdx] = now
+                        else
+                            local capturedLane = laneIdx
+                            taskDefer(function()
+                                pcallF(Trigger, PlayerModule, sideIdx, capturedLane, false, true)
+                                vimRelease(capturedLane)
+                            end)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+------------------------------------------------------------
+-- 10) Botplay label spoof
+------------------------------------------------------------
+local botplayLabel  = nil
+local lastSpoofTime = 0
+
+local function refreshBotplayLabel()
+    botplayLabel = nil
+    local plr = Players.LocalPlayer
+    local pg  = plr and plr:FindFirstChildOfClass("PlayerGui")
+    if not pg then return end
+    local hud = pg:FindFirstChild("GameHUD")
+    if not hud then return end
+    for _, d in ipairs(hud:GetDescendants()) do
+        if d.Name == "Botplay" and d:IsA("GuiObject") then
+            botplayLabel = d
+            return
+        end
+    end
+end
+
+local function spoofBotplayLabel()
+    if not settings.hideBotplayLabel then return end
+    local now = os.clock()
+    if now - lastSpoofTime < 0.5 then return end
+    lastSpoofTime = now
+    if not botplayLabel or not botplayLabel.Parent then refreshBotplayLabel() end
+    if botplayLabel and botplayLabel.Visible then botplayLabel.Visible = false end
+end
+
+------------------------------------------------------------
+-- 10b) Anti-AFK
+------------------------------------------------------------
+local lastAfkTime = os.clock()
+
+local function antiAfkTick()
+    if not settings.antiAfk then return end
+    local now = os.clock()
+    if now - lastAfkTime < settings.antiAfkIntervalSec then return end
+    lastAfkTime = now
+    pcallF(VIM.SendKeyEvent, VIM, true,  Enum.KeyCode.Space, false, game)
+    pcallF(VIM.SendKeyEvent, VIM, false, Enum.KeyCode.Space, false, game)
+end
+
+------------------------------------------------------------
+-- 11) WindUI GUI
+------------------------------------------------------------
+local WindUI
+do
+    local ok, lib = pcallF(function()
+        return loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/ofkotov/lib/refs/heads/main/123"))()
+    end)
+    if not ok or not lib then
+        warn("[RAT Autoplay] WindUI failed to load: " .. tostring(lib))
+        return
+    end
+    WindUI = lib
+end
+
+local Window = WindUI:CreateWindow({
+    Title            = "Rap Ability Autoplay",
+    Icon             = "music",
+    Author           = "Enhanced v2",
+    Folder           = "RAT_Autoplay",
+    Size             = UDim2.fromOffset(480, 440),
+    Theme            = "Rose",
+    User             = { Enabled = false },
+    SideBarWidth     = 160,
+    ScrollBarEnabled = true,
+})
+
+Window:EditOpenButton({
+    Title           = "Autoplay",
+    Icon            = "music",
+    CornerRadius    = UDim.new(0, 16),
+    StrokeThickness = 2,
+    Color           = ColorSequence.new(Color3.fromHex("ff6b9d"), Color3.fromHex("c850c0")),
+    OnlyMobile      = false,
+    Enabled         = true,
+    Draggable       = true,
+})
+
+local currentToggleKey = Enum.KeyCode[settings.toggleKey] or Enum.KeyCode.Delete
+Window:SetToggleKey(currentToggleKey)
+
+notify = function(opts)
+    pcallF(function() WindUI:Notify(opts) end)
+end
+
+local function makeSlider(tab, opts)
+    local function fire(v)
+        opts.Callback(v)
+        if opts.DangerBelow and v < opts.DangerBelow then
+            notify({
+                Title    = "Risky setting",
+                Content  = (opts.Title or "value") .. " = " .. tostring(v) ..
+                           " is below the safe threshold (" .. tostring(opts.DangerBelow) ..
+                           "). This may trigger the anti-cheat.",
+                Icon     = "alert-triangle",
+                Duration = 5,
+            })
+        end
+    end
+    if tab.Slider then
+        return tab:Slider({
+            Title    = opts.Title,
+            Icon     = opts.Icon,
+            Value    = { Min = opts.Min, Max = opts.Max, Default = opts.Default },
+            Step     = opts.Step or 1,
+            Callback = fire,
+        })
+    end
+    return tab:Input({
+        Title       = opts.Title .. " (" .. tostring(opts.Min) .. ".." .. tostring(opts.Max) .. ")",
+        Value       = tostring(opts.Default),
+        InputIcon   = opts.Icon or "hash",
+        Placeholder = "number",
+        Callback    = function(text)
+            local n = tonumber(text)
+            if not n then return end
+            if opts.Min and n < opts.Min then n = opts.Min end
+            if opts.Max and n > opts.Max then n = opts.Max end
+            fire(n)
+        end,
+    })
+end
+
+local function safeSetDesc(handle, text)
+    if not handle then return end
+    pcallF(function()
+        if handle.SetDesc then handle:SetDesc(text)
+        elseif handle.Paragraph then handle.Paragraph.Desc.Text = text end
+    end)
+end
+
+------------------------------------------------------------
+-- TAB: MAIN
+------------------------------------------------------------
+local MainTab = Window:Tab({ Title = "Autoplay", Icon = "play", Desc = "Main controls" })
+
+MainTab:Paragraph({
+    Title = "Rap Ability Autoplay — Enhanced v2",
+    Desc  = "20 new features on top of the original. Humanizer keeps runs organic. Mines and kill notes are always skipped. FC Guard, Accuracy Guard, Health Monitor and more in dedicated tabs.",
+    Image = "music",
+    Color = "HotPink",
+})
+
+MainTab:Toggle({
+    Title    = "Enable Autoplay",
+    Icon     = "power",
+    Default  = settings.enabled,
+    Callback = function(v)
+        settings.enabled = v
+        if not v then releaseAllPressed(); clearState(); hadPlayer = false end
+        fcTriggered = false
+        notify({ Title = v and "Autoplay ON" or "Autoplay OFF", Content = v and "Now playing." or "Keys released.", Icon = v and "check" or "pause", Duration = 2 })
+    end,
+})
+
+MainTab:Toggle({
+    Title    = "Skip mines / damage notes",
+    Icon     = "bomb",
+    Default  = settings.skipMines,
+    Callback = function(v) settings.skipMines = v end,
+})
+
+MainTab:Toggle({
+    Title    = "Hide Botplay label",
+    Icon     = "eye-off",
+    Default  = settings.hideBotplayLabel,
+    Callback = function(v) settings.hideBotplayLabel = v end,
+})
+
+MainTab:Toggle({
+    Title    = "Send virtual keypresses",
+    Icon     = "keyboard",
+    Default  = settings.sendVirtualInput,
+    Callback = function(v) settings.sendVirtualInput = v end,
+})
+
+MainTab:Toggle({
+    Title    = "Anti-AFK",
+    Icon     = "activity",
+    Default  = settings.antiAfk,
+    Callback = function(v)
+        settings.antiAfk = v
+        lastAfkTime = os.clock()
+        notify({ Title = "Anti-AFK " .. (v and "ON" or "OFF"), Content = v and "Hidden nudge every " .. settings.antiAfkIntervalSec .. "s." or "Disabled.", Icon = "activity", Duration = 2 })
+    end,
+})
+
+MainTab:Toggle({
+    Title    = "Debug mode (timing prints)",
+    Icon     = "terminal",
+    Default  = settings.debugMode,
+    Callback = function(v) settings.debugMode = v end,
+})
+
+------------------------------------------------------------
+-- TAB: GUARD (Features 1, 2, 12, 18)
+------------------------------------------------------------
+local GuardTab = Window:Tab({ Title = "Guard", Icon = "shield", Desc = "FC, Accuracy & Health guards" })
+
+GuardTab:Paragraph({
+    Title = "Guard settings",
+    Desc  = "Protective features that automatically pause or disable autoplay when something goes wrong.",
+    Image = "shield",
+    Color = "HotPink",
+})
+
+-- FEATURE 1: FC Guard
+GuardTab:Toggle({
+    Title    = "FC Guard — disable on first miss/bad",
+    Icon     = "award",
+    Default  = settings.fcGuard,
+    Callback = function(v) settings.fcGuard = v; fcTriggered = false end,
+})
+
+GuardTab:Button({
+    Title    = "Reset FC Guard",
+    Icon     = "rotate-ccw",
+    Callback = function()
+        fcTriggered = false
+        settings.enabled = true
+        notify({ Title = "FC Guard reset", Content = "Autoplay re-enabled.", Icon = "check", Duration = 2 })
+    end,
+})
+
+-- FEATURE 2: Accuracy Guard
+GuardTab:Toggle({
+    Title    = "Accuracy Guard — disable below threshold",
+    Icon     = "percent",
+    Default  = settings.accuracyGuard,
+    Callback = function(v) settings.accuracyGuard = v end,
+})
+
+makeSlider(GuardTab, {
+    Title    = "Accuracy threshold (%)",
+    Icon     = "percent",
+    Min      = 50, Max = 99, Default = settings.accuracyThreshold, Step = 1,
+    Callback = function(v) settings.accuracyThreshold = v end,
+})
+
+-- FEATURE 12: Health Monitor
+GuardTab:Toggle({
+    Title    = "Health Monitor — warn on low HP",
+    Icon     = "heart",
+    Default  = settings.healthMonitor,
+    Callback = function(v) settings.healthMonitor = v end,
+})
+
+makeSlider(GuardTab, {
+    Title    = "HP warning threshold (%)",
+    Icon     = "heart",
+    Min      = 5, Max = 50, Default = settings.healthPauseThreshold, Step = 5,
+    Callback = function(v) settings.healthPauseThreshold = v end,
+})
+
+-- FEATURE 18: Auto-release on pause
+GuardTab:Toggle({
+    Title    = "Auto-release keys on game pause",
+    Icon     = "pause",
+    Default  = settings.autoReleaseOnPause,
+    Callback = function(v) settings.autoReleaseOnPause = v end,
+})
+
+------------------------------------------------------------
+-- TAB: STATS (live)
+------------------------------------------------------------
+local StatsTab = Window:Tab({ Title = "Stats", Icon = "bar-chart-2", Desc = "Live session stats" })
+
+StatsTab:Paragraph({
+    Title = "Live session stats",
+    Desc  = "Updates every 0.25 s. Resets automatically on new song, or manually below.",
+    Image = "bar-chart-2",
+    Color = "HotPink",
+})
+
+local function addPara(tab, title, icon)
+    local h
+    pcallF(function() h = tab:Paragraph({ Title = title, Desc = "—", Image = icon, Color = "HotPink" }) end)
+    return h
+end
+
+local pSong      = addPara(StatsTab, "Current Song",      "music")
+local pScore     = addPara(StatsTab, "Score",             "star")
+local pHealth    = addPara(StatsTab, "HP",                "heart")
+local pAccuracy  = addPara(StatsTab, "Accuracy",          "percent")
+local pHits      = addPara(StatsTab, "Notes Hit",         "check")
+local pBads      = addPara(StatsTab, "Bad / Missed",      "minus")
+local pMines     = addPara(StatsTab, "Mines Skipped",     "bomb")
+local pChords    = addPara(StatsTab, "Chord Hits",        "layers")
+local pStreak    = addPara(StatsTab, "Streak / Best",     "zap")
+local pDensity   = addPara(StatsTab, "Notes / sec",       "activity")
+local pCalib     = addPara(StatsTab, "Avg Timing Delta",  "crosshair")
+local pSustains  = addPara(StatsTab, "Held Sustains",     "music")
+local pSongCount = addPara(StatsTab, "Songs this session","music")
+local pUptime    = addPara(StatsTab, "Session uptime",    "clock")
+
+StatsTab:Button({
+    Title    = "Reset stats",
+    Icon     = "rotate-ccw",
+    Callback = function()
+        resetStats(false)
+        notify({ Title = "Stats reset", Content = "All counters cleared.", Icon = "check", Duration = 2 })
+    end,
+})
+
+-- FEATURE 6: Clipboard Export
+StatsTab:Button({
+    Title    = "Copy stats to clipboard",
+    Icon     = "clipboard",
+    Callback = function()
+        local txt = string.format(
+            "=== RAT Autoplay Stats ===\nSong: %s\nAccuracy: %.2f%%\nHits: %d | Bad: %d | Missed: %d\nStreak: %d | Best: %d\nChords: %d | Mines skipped: %d\nNPS: %.1f | Avg delta: %.2f ms\nSongs: %d",
+            stats.songName, getAccuracy(),
+            stats.notesHit, stats.notesBad, stats.notesMissed,
+            stats.streak, stats.bestStreak,
+            stats.chords, stats.minesSkipped,
+            stats.notesPerSec, stats.avgDeltaMs,
+            stats.songCount
+        )
+        pcallF(setclipboard, txt)
+        notify({ Title = "Copied!", Content = "Stats copied to clipboard.", Icon = "clipboard", Duration = 2 })
+    end,
+})
+
+------------------------------------------------------------
+-- TAB: HISTORY (Feature 5)
+------------------------------------------------------------
+local HistTab = Window:Tab({ Title = "History", Icon = "list", Desc = "Last 5 songs" })
+
+HistTab:Paragraph({
+    Title = "Song history",
+    Desc  = "Automatically recorded when a new song starts. Shows last 5 completed songs.",
+    Image = "list",
+    Color = "HotPink",
+})
+
+local histParagraphs = {}
+for i = 1, 5 do
+    histParagraphs[i] = addPara(HistTab, "Song " .. i, "music")
+end
+
+------------------------------------------------------------
+-- TAB: TIMING
+------------------------------------------------------------
+local TimingTab = Window:Tab({ Title = "Timing", Icon = "timer", Desc = "Press / Release offsets" })
+
+TimingTab:Paragraph({
+    Title = "Press / Release offsets",
+    Desc  = "Constant timing shifts (ms). Useful when long-note tails read Fresh -X ms (raise Release Offset by +X).",
+    Image = "info",
+    Color = "HotPink",
+})
+
+makeSlider(TimingTab, { Title = "Press Offset (ms)",      Icon = "arrow-down", Min = -100, Max = 100, Default = settings.pressOffsetMs,   Step = 1, Callback = function(v) settings.pressOffsetMs   = v end })
+makeSlider(TimingTab, { Title = "Release Offset LN (ms)", Icon = "arrow-up",   Min = -100, Max = 200, Default = settings.releaseOffsetMs, Step = 1, Callback = function(v) settings.releaseOffsetMs = v end })
+makeSlider(TimingTab, { Title = "Press Leeway (ms)",      Icon = "clock",      Min = 0,    Max = 30,  Default = settings.pressLeewayMs,   Step = 1, Callback = function(v) settings.pressLeewayMs   = v end })
+
+-- FEATURE 8: Late Hit Safety Net
+TimingTab:Toggle({
+    Title    = "Late Hit Safety Net",
+    Icon     = "shield",
+    Default  = settings.lateHitSafety,
+    Callback = function(v) settings.lateHitSafety = v end,
+})
+makeSlider(TimingTab, {
+    Title    = "Late hit extra leeway (ms)",
+    Icon     = "clock",
+    Min      = 0, Max = 30, Default = settings.lateHitExtraMs, Step = 1,
+    Callback = function(v) settings.lateHitExtraMs = v end,
+})
+
+TimingTab:Button({
+    Title    = "Reset Timing to defaults",
+    Icon     = "rotate-ccw",
+    Callback = function()
+        settings.pressOffsetMs   = 0
+        settings.releaseOffsetMs = 0
+        settings.pressLeewayMs   = 5
+        notify({ Title = "Timing reset", Content = "Offsets → 0 / 5 ms", Icon = "check", Duration = 2 })
+    end,
+})
+
+-- FEATURE 14: Calibration hint
+TimingTab:Button({
+    Title    = "Apply calibration offset",
+    Icon     = "crosshair",
+    Callback = function()
+        if #stats.timingDeltas < 10 then
+            notify({ Title = "Not enough data", Content = "Play more notes first (need 10+).", Icon = "info", Duration = 3 })
+            return
+        end
+        local adj = -math.floor(stats.avgDeltaMs + 0.5)
+        settings.pressOffsetMs = math.max(-100, math.min(100, settings.pressOffsetMs + adj))
+        notify({
+            Title   = "Calibration applied",
+            Content = string.format("Avg delta was %.1f ms → Press Offset adjusted by %d ms → now %d ms",
+                      stats.avgDeltaMs, adj, settings.pressOffsetMs),
+            Icon    = "crosshair",
+            Duration = 5,
+        })
+        stats.timingDeltas = {}
+        stats.avgDeltaMs   = 0
+    end,
+})
+
+------------------------------------------------------------
+-- TAB: LANES (Feature 4 + Keys)
+------------------------------------------------------------
+local LanesTab = Window:Tab({ Title = "Lanes", Icon = "keyboard", Desc = "Bindings & muting" })
+
+LanesTab:Paragraph({
+    Title = "Lane key bindings",
+    Desc  = "Auto-detected from in-game settings. Edit if needed. Supports 4K–7K.",
+    Image = "keyboard",
+    Color = "HotPink",
+})
+
+local laneLabels = { "Lane 1 (Left)", "Lane 2 (Down)", "Lane 3 (Up)", "Lane 4 (Right)", "Lane 5", "Lane 6", "Lane 7" }
+
+for i = 1, 7 do
+    local laneIdx = i
+    LanesTab:Input({
+        Title       = laneLabels[i],
+        Value       = settings.bindKey[i] or "",
+        InputIcon   = "keyboard",
+        Placeholder = "Letter, e.g. A",
+        Callback    = function(txt)
+            if txt and #txt > 0 then settings.bindKey[laneIdx] = txt:upper() end
+        end,
+    })
+end
+
+-- FEATURE 4: Lane Muting
+LanesTab:Paragraph({
+    Title = "Lane Muting",
+    Desc  = "Muted lanes are silently skipped — notes pass without a press.",
+    Image = "volume-x",
+    Color = "HotPink",
+})
+
+for i = 1, 7 do
+    local laneIdx = i
+    LanesTab:Toggle({
+        Title    = "Mute " .. laneLabels[i],
+        Icon     = "volume-x",
+        Default  = settings.mutedLanes[i],
+        Callback = function(v) settings.mutedLanes[laneIdx] = v end,
+    })
+end
+
+-- Hotkey settings
+LanesTab:Paragraph({
+    Title = "Hotkeys",
+    Desc  = "Menu toggle + quick enable/disable key.",
+    Image = "key",
+    Color = "HotPink",
+})
+
+LanesTab:Input({
+    Title       = "Menu toggle key",
+    Value       = settings.toggleKey,
+    InputIcon   = "key",
+    Placeholder = "e.g. Delete, F5",
+    Callback    = function(txt)
+        if not txt or #txt == 0 then return end
+        local up = txt:sub(1,1):upper() .. txt:sub(2)
+        if Enum.KeyCode[up] then
+            settings.toggleKey = up
+            Window:SetToggleKey(Enum.KeyCode[up])
+            notify({ Title = "Toggle key changed", Content = "Menu: " .. up, Icon = "key", Duration = 3 })
+        else
+            notify({ Title = "Invalid key", Content = "\"" .. txt .. "\" not recognised.", Icon = "alert-triangle", Duration = 3 })
+        end
+    end,
+})
+
+-- FEATURE 17: Quick toggle hotkey input
+LanesTab:Input({
+    Title       = "Quick enable/disable key",
+    Value       = settings.quickKey,
+    InputIcon   = "zap",
+    Placeholder = "e.g. KeypadZero, F6",
+    Callback    = function(txt)
+        if not txt or #txt == 0 then return end
+        local up = txt:sub(1,1):upper() .. txt:sub(2)
+        if Enum.KeyCode[up] then
+            settings.quickKey = up
+            notify({ Title = "Quick key changed", Content = "Quick toggle: " .. up, Icon = "zap", Duration = 3 })
+        else
+            notify({ Title = "Invalid key", Content = "\"" .. txt .. "\" not recognised.", Icon = "alert-triangle", Duration = 3 })
+        end
+    end,
+})
+
+------------------------------------------------------------
+-- TAB: HUMANIZER (Presets + Advanced)
+------------------------------------------------------------
+local HumTab = Window:Tab({ Title = "Humanizer", Icon = "sliders-horizontal", Desc = "Presets & jitter knobs" })
+
+HumTab:Paragraph({
+    Title = "Humanizer presets",
+    Desc  = "One-click tuned profiles. Overwrites the sliders below.",
+    Image = "sliders-horizontal",
+    Color = "HotPink",
+})
+
+local presetNames = {}
+for _, p in ipairs(PRESETS) do presetNames[#presetNames+1] = p.name end
+
+HumTab:Dropdown({
+    Title    = "Load preset",
+    Values   = presetNames,
+    Multi    = false,
+    Default  = presetNames[2],
+    Callback = function(v)
+        for _, preset in ipairs(PRESETS) do
+            if preset.name == v then
+                applyPreset(preset)
+                notify({ Title = "Preset loaded", Content = preset.name, Icon = "check", Duration = 3 })
+                break
+            end
+        end
+    end,
+})
+
+-- FEATURE 7: Humanizer Randomizer
+HumTab:Toggle({
+    Title    = "Randomize humanizer each song",
+    Icon     = "shuffle",
+    Default  = settings.humanizerRandomize,
+    Callback = function(v) settings.humanizerRandomize = v end,
+})
+
+-- FEATURE 15: Random preset per song
+HumTab:Toggle({
+    Title    = "Random preset each song",
+    Icon     = "dice",
+    Default  = settings.randomPresetPerSong,
+    Callback = function(v) settings.randomPresetPerSong = v end,
+})
+
+HumTab:Button({
+    Title    = "Randomize now",
+    Icon     = "shuffle",
+    Callback = function()
+        randomizeHumanizer()
+        notify({ Title = "Randomized!", Content = string.format("Jitter: %.1f ms | Bad: %.2f%%", settings.pressJitterMs, settings.badChance), Icon = "shuffle", Duration = 3 })
+    end,
+})
+
+HumTab:Paragraph({
+    Title = "Fine-tune sliders",
+    Desc  = "Values inside the safe zone are undetected. The GUI warns on risky values.",
+    Image = "info",
+    Color = "HotPink",
+})
+
+makeSlider(HumTab, { Title = "Press Jitter σ (ms)",       Icon = "shuffle", Min = 0, Max = 20, Default = settings.pressJitterMs,        Step = 1,   DangerBelow = DANGER.pressJitterMs,   Callback = function(v) settings.pressJitterMs        = v end })
+makeSlider(HumTab, { Title = "Press Jitter Clamp (ms)",   Icon = "shuffle", Min = 1, Max = 30, Default = settings.pressJitterClampMs,   Step = 1,                                       Callback = function(v) settings.pressJitterClampMs   = v end })
+makeSlider(HumTab, { Title = "Release Jitter σ (ms)",     Icon = "shuffle", Min = 0, Max = 20, Default = settings.releaseJitterMs,      Step = 1,   DangerBelow = DANGER.releaseJitterMs, Callback = function(v) settings.releaseJitterMs      = v end })
+makeSlider(HumTab, { Title = "Release Jitter Clamp (ms)", Icon = "shuffle", Min = 1, Max = 30, Default = settings.releaseJitterClampMs, Step = 1,                                       Callback = function(v) settings.releaseJitterClampMs = v end })
+makeSlider(HumTab, { Title = "Miss Chance (%)",           Icon = "x",       Min = 0, Max = 5,  Default = settings.missChance,           Step = 0.1,                                     Callback = function(v) settings.missChance           = v end })
+makeSlider(HumTab, { Title = "Bad/Good Chance (%)",       Icon = "minus",   Min = 0, Max = 5,  Default = settings.badChance,            Step = 0.1, DangerBelow = DANGER.badChance,       Callback = function(v) settings.badChance            = v end })
+
+HumTab:Dropdown({
+    Title    = "Player side override",
+    Values   = { "Auto", "Side 1 (Left)", "Side 2 (Right)" },
+    Multi    = false,
+    Default  = "Auto",
+    Callback = function(v)
+        if     v == "Side 1 (Left)"  then settings.sideOverride = 1
+        elseif v == "Side 2 (Right)" then settings.sideOverride = 2
+        else                              settings.sideOverride = 0 end
+    end,
+})
+
+------------------------------------------------------------
+-- TAB: EXTRA (Features 16, 19, Anti-AFK interval, miss log)
+------------------------------------------------------------
+local ExtraTab = Window:Tab({ Title = "Extra", Icon = "more-horizontal", Desc = "Ghost, Vibrato, Misc" })
+
+ExtraTab:Paragraph({
+    Title = "Ghost Input Mode",
+    Desc  = "Occasionally sends a fake keypress on an idle lane to blur autoplay patterns in input logs.",
+    Image = "ghost",
+    Color = "HotPink",
+})
+
+-- FEATURE 16
+ExtraTab:Toggle({
+    Title    = "Ghost Input Mode",
+    Icon     = "ghost",
+    Default  = settings.ghostInputMode,
+    Callback = function(v) settings.ghostInputMode = v end,
+})
+
+makeSlider(ExtraTab, {
+    Title    = "Ghost chance (×0.001 per tick)",
+    Icon     = "percent",
+    Min      = 1, Max = 10, Default = math.floor(settings.ghostChance * 1000), Step = 1,
+    Callback = function(v) settings.ghostChance = v / 1000 end,
+})
+
+ExtraTab:Paragraph({
+    Title = "Sustain Vibrato",
+    Desc  = "Sends micro re-press pulses on held long notes at a configurable interval — simulates natural human hold variance.",
+    Image = "music",
+    Color = "HotPink",
+})
+
+-- FEATURE 19
+ExtraTab:Toggle({
+    Title    = "Sustain Vibrato",
+    Icon     = "radio",
+    Default  = settings.sustainVibrato,
+    Callback = function(v) settings.sustainVibrato = v end,
+})
+
+makeSlider(ExtraTab, {
+    Title    = "Vibrato interval (ms)",
+    Icon     = "clock",
+    Min      = 50, Max = 500, Default = settings.vibratoIntervalMs, Step = 10,
+    Callback = function(v) settings.vibratoIntervalMs = v end,
+})
+
+ExtraTab:Paragraph({
+    Title = "Miss Position Log",
+    Desc  = "When Debug Mode is ON, prints each missed note's lane and song-time to the Output console for calibration analysis.",
+    Image = "terminal",
+    Color = "HotPink",
+})
+
+-- FEATURE 20
+ExtraTab:Toggle({
+    Title    = "Miss Position Log",
+    Icon     = "terminal",
+    Default  = settings.missLog,
+    Callback = function(v) settings.missLog = v end,
+})
+
+ExtraTab:Paragraph({
+    Title = "Anti-AFK",
+    Desc  = "Sends a hidden Space keypress at the interval below to prevent idle-kick.",
+    Image = "activity",
+    Color = "HotPink",
+})
+
+makeSlider(ExtraTab, {
+    Title    = "Anti-AFK interval (sec)",
+    Icon     = "activity",
+    Min      = 15, Max = 300, Default = settings.antiAfkIntervalSec, Step = 5,
+    Callback = function(v) settings.antiAfkIntervalSec = v end,
+})
+
+------------------------------------------------------------
+-- 12) Master heartbeat — all subsystems in one connection
+------------------------------------------------------------
+local lastStatUpdate = 0
+
+local masterConn = RunService.Heartbeat:Connect(function()
+    local now = os.clock()
+
+    autoplayTick()
+    spoofBotplayLabel()
+    antiAfkTick()
+    scrapeHud()
+
+    -- Stats label refresh (~4 Hz)
+    if now - lastStatUpdate >= 0.25 then
+        lastStatUpdate = now
+
+        local acc    = string.format("%.2f%%", getAccuracy())
+        local uptime = mathFloor(now - stats.sessionStart)
+        local mins   = mathFloor(uptime / 60)
+        local secs   = uptime % 60
+
+        -- Which lanes are held right now?
+        local heldStr = ""
+        for i = 1, detectedLaneCount do
+            if heldSustains[i] then heldStr = heldStr .. i .. " " end
+        end
+        if heldStr == "" then heldStr = "none" end
+
+        safeSetDesc(pSong,     stats.songName)
+        safeSetDesc(pScore,    stats.currentScore)
+        safeSetDesc(pHealth,   stats.currentHealth)
+        safeSetDesc(pAccuracy, acc)
+        safeSetDesc(pHits,     tostring(stats.notesHit) .. (stats.mustHitsHit > 0 and ("  (must-hits: " .. stats.mustHitsHit .. ")") or ""))
+        safeSetDesc(pBads,     "Bad: " .. stats.notesBad .. "  |  Missed: " .. stats.notesMissed)
+        safeSetDesc(pMines,    tostring(stats.minesSkipped))
+        safeSetDesc(pChords,   tostring(stats.chords))
+        safeSetDesc(pStreak,   stats.streak .. "  /  best " .. stats.bestStreak)
+        safeSetDesc(pDensity,  string.format("%.1f / sec", stats.notesPerSec))
+        safeSetDesc(pCalib,    string.format("%.2f ms  (samples: %d)", stats.avgDeltaMs, #stats.timingDeltas))
+        safeSetDesc(pSustains, heldStr)
+        safeSetDesc(pSongCount, tostring(stats.songCount))
+        safeSetDesc(pUptime,   string.format("%d m %02d s", mins, secs))
+
+        -- History tab
+        for i, entry in ipairs(stats.songHistory) do
+            safeSetDesc(histParagraphs[i],
+                string.format("%s | %s | Hits: %d | Miss: %d | Bad: %d | Streak: %d",
+                    entry.name, entry.acc, entry.hits, entry.misses, entry.bads, entry.best))
+        end
+    end
+end)
+
+------------------------------------------------------------
+-- 13) FEATURE 17: Quick toggle hotkey via UserInputService
+------------------------------------------------------------
+local quickKeyConn = UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if not Enum.KeyCode[settings.quickKey] then return end
+    if input.KeyCode == Enum.KeyCode[settings.quickKey] then
+        settings.enabled = not settings.enabled
+        if not settings.enabled then
+            releaseAllPressed()
+            clearState()
+            hadPlayer   = false
+            fcTriggered = false
+        end
+        notify({
+            Title   = settings.enabled and "Autoplay ON" or "Autoplay OFF",
+            Content = "Quick toggled via " .. settings.quickKey,
+            Icon    = settings.enabled and "check" or "pause",
+            Duration = 2,
+        })
+    end
+end)
+
+------------------------------------------------------------
+-- 14) Global state handle
+------------------------------------------------------------
+_G.__RAT_AUTOPLAY = {
+    heartbeat = masterConn,
+    spoof     = { Disconnect = function() end },
+    afk       = { Disconnect = function() end },
+    quickkey  = quickKeyConn,
+    window    = Window,
+    settings  = settings,
+    stats     = stats,
+    players   = getPlayers(),
+}
+
+------------------------------------------------------------
+-- 15) Startup notification
+------------------------------------------------------------
+local keyStr = table.concat({ table.unpack(settings.bindKey, 1, 4) }, " · ")
+notify({
+    Title    = "Rap Ability Autoplay — Enhanced v2",
+    Content  = "20 features loaded! Keys: " .. keyStr ..
+               "\n" .. settings.toggleKey .. " = menu  |  " .. settings.quickKey .. " = quick toggle",
+    Icon     = "music",
+    Duration = 7,
+})
